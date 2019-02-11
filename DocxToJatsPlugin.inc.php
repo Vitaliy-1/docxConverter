@@ -41,7 +41,7 @@ class DocxToJatsPlugin extends GenericPlugin {
 			if ($this->getEnabled()) {
 				// Register callbacks.
 				HookRegistry::register('TemplateManager::fetch', array($this, 'templateFetchCallback'));
-
+				HookRegistry::register('LoadHandler', array($this, 'callbackLoadHandler'));
 				$this->_registerTemplateResource();
 			}
 			return true;
@@ -58,6 +58,19 @@ class DocxToJatsPlugin extends GenericPlugin {
 		return $request->getBaseUrl() . '/' . $this->getPluginPath();
 	}
 
+	public function callbackLoadHandler($hookName, $args) {
+		$page = $args[0];
+		$op = $args[1];
+
+		if ($page == "docxParser" && $op == "parse") {
+			define('HANDLER_CLASS', 'ConverterHandler');
+			define('CONVERTER_PLUGIN_NAME', $this->getName());
+			$args[2] = $this->getPluginPath() . '/' . 'ConverterHandler.inc.php';
+		}
+
+		return false;
+	}
+
 	/**
 	 * Adds additional links to submission files grid row
 	 * @param $hookName string The name of the invoked hook
@@ -65,7 +78,7 @@ class DocxToJatsPlugin extends GenericPlugin {
 	 */
 	public function templateFetchCallback($hookName, $params) {
 		$request = $this->getRequest();
-		$router = $request->getRouter();
+		$dispatcher = $request->getDispatcher();
 
 		$templateMgr = $params[0];
 		$resourceName = $params[1];
@@ -80,13 +93,19 @@ class DocxToJatsPlugin extends GenericPlugin {
 
 				if (strtolower($fileExtension) == 'docx') {
 
-					$actionArgs = $request->getUserVars();
-					$path = $router->url($request, null, null, 'parseDocx', null, $actionArgs);
+					$stageId = (int) $request->getUserVar('stageId');
+					//$path = $router->url($request, null, 'converter', 'parse', null, $actionArgs);
+					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
+						array(
+							'submissionId' => $submissionFile->getSubmissionId(),
+							'fileId' => $submissionFile->getFileId(),
+							'stageId' => $stageId
+						));
 
 					import('lib.pkp.classes.linkAction.request.AjaxAction');
 					$linkAction = new LinkAction(
-						'parseDocx',
-						new AjaxAction($path),
+						'parse',
+						new AjaxAction($path, AJAX_REQUEST_TYPE_POST),
 						__('plugins.generic.docxToJats.button.parseDocx')
 					);
 					$row->addAction($linkAction);
