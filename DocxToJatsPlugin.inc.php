@@ -101,11 +101,17 @@ class DocxToJatsPlugin extends GenericPlugin {
 							'fileId' => $submissionFile->getFileId(),
 							'stageId' => $stageId
 						));
+					$pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access',
+						array(
+							'submissionId' => $submissionFile->getSubmissionId(),
+							'fileId' => $submissionFile->getFileId(),
+							'stageId' => $stageId
+						));
 
 					import('lib.pkp.classes.linkAction.request.AjaxAction');
 					$linkAction = new LinkAction(
 						'parse',
-						new AjaxAction($path, AJAX_REQUEST_TYPE_POST),
+						new PostAndRedirectAction($path, $pathRedirect),
 						__('plugins.generic.docxToJats.button.parseDocx')
 					);
 					$row->addAction($linkAction);
