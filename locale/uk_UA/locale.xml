@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
+<!--
+  * plugins/generic/jatsParser/locale/en_US/locale.xml
+  *
+  * Copyright (c) 2017 Vitaliy Bezsheiko, MD, Distributed under the GNU GPL v3.
+  *
+  * DOCX converter plugin localization strings
+  -->
+
+<locale name="en_US" full_name="U.S. English">
+	<message key="plugins.generic.docxToJats.displayName">Плагін для конвертації DOCX в JATS XML</message>
+	<message key="plugins.generic.docxToJats.description">Розроблений для конвертації наукових статей із формату DOCX (OOXML) в формат JATS XML.</message>
+	<message key="plugins.generic.docxToJats.button.parseDocx">Конвертувати в JATS XML</message>
+</locale>
