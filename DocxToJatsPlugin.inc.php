@@ -65,7 +65,7 @@ class DocxToJatsPlugin extends GenericPlugin {
 		if ($page == "docxParser" && $op == "parse") {
 			define('HANDLER_CLASS', 'ConverterHandler');
 			define('CONVERTER_PLUGIN_NAME', $this->getName());
-			$args[2] = $this->getPluginPath() . '/' . 'ConverterHandler.inc.php';
+			$args[2] = $this->getPluginPath() . '/' . 'DOCXConverterHandler.inc.php';
 		}
 
 		return false;
