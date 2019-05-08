@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * @file plugins/generic/docxConverter/classes/DOCXConverterDocument.inc.php
+ *
+ * Copyright (c) 2014-2019 Simon Fraser University Library
+ * Copyright (c) 2003-2019 John Willinsky
+ * Distributed under the GNU GPL v2.
+ *
+ * @brief extends the creator class for JATS XML
+ */
+
 require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
 use docx2jats\DOCXArchive;

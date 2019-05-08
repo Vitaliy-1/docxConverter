@@ -1,13 +1,13 @@
 <?php
 
 /**
- * @file plugins/generic/docxToJats/DocxToJatsPlugin.inc.php
+ * @file plugins/generic/docxConverter/DocxToJatsPlugin.inc.php
  *
- * @class DocxToJatsPlugin
- * @ingroup plugins_generic_docxToJats
+ * Copyright (c) 2014-2019 Simon Fraser University Library
+ * Copyright (c) 2003-2019 John Willinsky
+ * Distributed under the GNU GPL v2.
  *
- * @brief DOCX to JATS XML parser
- *
+ * @brief main class of the DOCX to JATS XML Converter Plugin
  */
 
 import('lib.pkp.classes.plugins.GenericPlugin');

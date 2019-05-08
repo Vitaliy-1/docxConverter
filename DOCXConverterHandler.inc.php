@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * @file plugins/generic/docxConverter/DOCXConverterHandler.inc.php
+ *
+ * Copyright (c) 2014-2019 Simon Fraser University Library
+ * Copyright (c) 2003-2019 John Willinsky
+ * Distributed under the GNU GPL v2.
+ *
+ * @brief handler for the grid's conversion
+ */
+
 import('classes.handler.Handler');
 import('plugins.generic.docxConverter.classes.DOCXConverterDocument');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
