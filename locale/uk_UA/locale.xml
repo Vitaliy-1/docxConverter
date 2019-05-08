@@ -13,4 +13,5 @@
 	<message key="plugins.generic.docxToJats.displayName">Плагін для конвертації DOCX в JATS XML</message>
 	<message key="plugins.generic.docxToJats.description">Розроблений для конвертації наукових статей із формату DOCX (OOXML) в формат JATS XML.</message>
 	<message key="plugins.generic.docxToJats.button.parseDocx">Конвертувати в JATS XML</message>
+	<message key="grid.action.parse">Конвертувати цей файл в JATS XML</message>
 </locale>

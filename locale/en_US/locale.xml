@@ -10,7 +10,8 @@
   -->
 
 <locale name="en_US" full_name="U.S. English">
-	<message key="plugins.generic.docxToJats.displayName">DOCX to JATS XML converter Plugin</message>
+	<message key="plugins.generic.docxToJats.displayName">DOCX to JATS XML Converter Plugin</message>
 	<message key="plugins.generic.docxToJats.description">Is developed to transform scientific articles from DOCX (OOXML) to JATS XML format.</message>
 	<message key="plugins.generic.docxToJats.button.parseDocx">Convert to JATS XML</message>
+	<message key="grid.action.parse">Convert this file to JATS XML</message>
 </locale>

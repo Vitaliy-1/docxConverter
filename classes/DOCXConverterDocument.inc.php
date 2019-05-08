@@ -2,11 +2,20 @@
 
 require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
+use docx2jats\DOCXArchive;
 
 class DOCXConverterDocument extends Document {
 
+	protected $xpath;
+
+	public function __construct(DOCXArchive $docxArchive)
+	{
+		parent::__construct($docxArchive);
+		$this->xpath = new DOMXPath($this);
+		$this->removeTableParagraphs();
+	}
+
 	public function setDocumentMeta(Request $reguest, Submission $submission) {
-		$context = $reguest->getContext();
 
 		// Delete all nodes if exist
 		while($this->front->hasChildNodes()) {
@@ -104,5 +113,15 @@ class DOCXConverterDocument extends Document {
 		}
 
 		// TODO convert abstract from HTML to JATS to be displayed by Texture
+	}
+
+	private function removeTableParagraphs() {
+		$cellParagraphs = $this->xpath->query("//td/p|//th/p");
+		foreach ($cellParagraphs as $cellParagraph) {
+			foreach ($cellParagraph->childNodes as $child) {
+				$cellParagraph->parentNode->appendChild($child);
+			}
+			$cellParagraph->parentNode->removeChild($cellParagraph);
+		}
 	}
 }
