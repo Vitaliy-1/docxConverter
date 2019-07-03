@@ -128,9 +128,11 @@ class DOCXConverterDocument extends Document {
 	private function removeTableParagraphs() {
 		$cellParagraphs = $this->xpath->query("//td/p|//th/p");
 		foreach ($cellParagraphs as $cellParagraph) {
-			foreach ($cellParagraph->childNodes as $child) {
+			$paragraphContent = $this->xpath->query("descendant::*|text()", $cellParagraph);
+			foreach ($paragraphContent as $child) {
 				$cellParagraph->parentNode->appendChild($child);
 			}
+
 			$cellParagraph->parentNode->removeChild($cellParagraph);
 		}
 	}
