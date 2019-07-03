@@ -23,6 +23,7 @@ class DOCXConverterDocument extends Document {
 		parent::__construct($docxArchive);
 		$this->xpath = new DOMXPath($this);
 		$this->removeTableParagraphs();
+		$this->stripExternalLinks();
 	}
 
 	public function setDocumentMeta(Request $reguest, Submission $submission) {
@@ -134,6 +135,36 @@ class DOCXConverterDocument extends Document {
 			}
 
 			$cellParagraph->parentNode->removeChild($cellParagraph);
+		}
+	}
+
+	/**
+	 * @return void
+	 * @brief Strip ext-link tag from formatted text for compliance with Texture Plugin
+	 */
+	private function stripExternalLinks() {
+		$bodyExtLinks = $this->xpath->query("//ext-link");
+		foreach ($bodyExtLinks as $bodyExtLink) {
+			$parentNode = $bodyExtLink->parentNode;
+			$this->_recursiveStripExternalLinks($parentNode);
+		}
+	}
+
+	/**
+	 * @param $parentNode DOMElement
+	 * @return void
+	 * @brief Recursively strip all formatted text from ext-link element
+	 */
+	private function _recursiveStripExternalLinks($parentNode) {
+		if (in_array($parentNode->tagName, array("italic", "bold", 'sup', 'sub'))) {
+			$parentNodeContent = $this->xpath->query("descendant::*|text()", $parentNode);
+			foreach ($parentNodeContent as $child) {
+				$parentNode->parentNode->insertBefore($child, $parentNode);
+			}
+
+			$this->_recursiveStripExternalLinks($parentNode->parentNode);
+
+			$parentNode->parentNode->removeChild($parentNode);
 		}
 	}
 }
