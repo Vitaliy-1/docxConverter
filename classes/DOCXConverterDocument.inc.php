@@ -129,7 +129,7 @@ class DOCXConverterDocument extends Document {
 	}
 
 	private function cleanXml() {
-		$nodesToRemove = $this->xpath->query("//body//*[not(normalize-space()) and not(@*)]");
+		$nodesToRemove = $this->xpath->query("//body//*[not(normalize-space()) and not(.//@*)]");
 		foreach ($nodesToRemove as $nodeToRemove) {
 			$nodeToRemove->parentNode->removeChild($nodeToRemove);
 		}
