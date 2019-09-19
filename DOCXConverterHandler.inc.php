@@ -76,11 +76,53 @@ class ConverterHandler extends Handler {
 		$newSubmissionFile->setRevision(1);
 		$insertedSubmissionFile = $submissionFileDao->insertObject($newSubmissionFile, $tmpfname);
 
+		$mediaData = $docxArchive->getMediaFilesContent();
+		if (!empty($mediaData)) {
+			foreach ($mediaData as $originalName => $singleData) {
+				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $originalName, $singleData);
+			}
+		}
+
 		return new JSONMessage(true, array(
 			'submissionId' => $insertedSubmissionFile->getSubmissionId(),
 			'fileId' => $insertedSubmissionFile->getFileIdAndRevision(),
 			'fileStage' => $insertedSubmissionFile->getFileStage(),
 		));
+	}
+
+	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, string $originalName, string $singleData) {
+		$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
+		file_put_contents($tmpfnameSuppl, $singleData);
+		$mimeType = mime_content_type($tmpfnameSuppl);
+
+		// Determine genre
+		$genreDao = DAORegistry::getDAO('GenreDAO');
+		$genres = $genreDao->getByDependenceAndContextId(true, $request->getContext()->getId());
+		$supplGenreId = null;
+		while ($genre = $genres->next()) {
+			if (($mimeType == "image/png" || $mimeType == "image/jpeg") && $genre->getKey() == "IMAGE") {
+				$supplGenreId = $genre->getId();
+			}
+		}
+
+		if (!$supplGenreId) return;
+
+		// Set file
+		$supplementaryFile = $submissionFileDao->newDataObjectByGenreId($supplGenreId);
+		$supplementaryFile->setSubmissionId($submission->getId());
+		$supplementaryFile->setSubmissionLocale($submission->getLocale());
+		$supplementaryFile->setGenreId($supplGenreId);
+		$supplementaryFile->setFileStage(SUBMISSION_FILE_DEPENDENT);
+		$supplementaryFile->setDateUploaded(Core::getCurrentDate());
+		$supplementaryFile->setDateModified(Core::getCurrentDate());
+		$supplementaryFile->setUploaderUserId($request->getUser()->getId());
+		$supplementaryFile->setFileSize(filesize($tmpfnameSuppl));
+		$supplementaryFile->setFileType($mimeType);
+		$supplementaryFile->setAssocId($newSubmissionFile->getFileId());
+		$supplementaryFile->setAssocType(ASSOC_TYPE_SUBMISSION_FILE);
+		$supplementaryFile->setOriginalFileName(basename($originalName));
+
+		$submissionFileDao->insertObject($supplementaryFile, $tmpfnameSuppl);
 	}
 
 }
