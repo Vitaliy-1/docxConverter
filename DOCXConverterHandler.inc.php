@@ -75,6 +75,7 @@ class ConverterHandler extends Handler {
 		$newSubmissionFile->setSourceRevision($submissionFile->getRevision());
 		$newSubmissionFile->setRevision(1);
 		$insertedSubmissionFile = $submissionFileDao->insertObject($newSubmissionFile, $tmpfname);
+		unlink($tmpfname);
 
 		$mediaData = $docxArchive->getMediaFilesContent();
 		if (!empty($mediaData)) {
@@ -105,7 +106,10 @@ class ConverterHandler extends Handler {
 			}
 		}
 
-		if (!$supplGenreId) return;
+		if (!$supplGenreId) {
+			unlink($tmpfnameSuppl);
+			return;
+		}
 
 		// Set file
 		$supplementaryFile = $submissionFileDao->newDataObjectByGenreId($supplGenreId);
@@ -123,6 +127,7 @@ class ConverterHandler extends Handler {
 		$supplementaryFile->setOriginalFileName(basename($originalName));
 
 		$submissionFileDao->insertObject($supplementaryFile, $tmpfnameSuppl);
+		unlink($tmpfnameSuppl);
 	}
 
 }
