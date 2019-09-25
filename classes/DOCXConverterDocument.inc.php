@@ -23,7 +23,6 @@ class DOCXConverterDocument extends Document {
 		parent::__construct($docxArchive);
 		$this->xpath = new DOMXPath($this);
 
-		$this->cleanXml();
 		$this->removeTableParagraphs();
 		$this->stripExternalLinks();
 	}
@@ -126,13 +125,6 @@ class DOCXConverterDocument extends Document {
 		}
 
 		// TODO convert abstract from HTML to JATS to be displayed by Texture
-	}
-
-	private function cleanXml() {
-		$nodesToRemove = $this->xpath->query("//body//*[not(normalize-space()) and not(.//@*)]");
-		foreach ($nodesToRemove as $nodeToRemove) {
-			$nodeToRemove->parentNode->removeChild($nodeToRemove);
-		}
 	}
 
 	private function removeTableParagraphs() {
