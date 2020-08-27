@@ -33,11 +33,11 @@ class DocxToJatsPlugin extends GenericPlugin {
 	 *
 	 * @param $category string Plugin category
 	 * @param $path string Plugin path
-	 *
+	 * @param $mainContextId ?integer
 	 * @return bool True on successful registration false otherwise
 	 */
-	function register($category, $path) {
-		if (parent::register($category, $path)) {
+	function register($category, $path, $mainContextId = null) {
+		if (parent::register($category, $path, $mainContextId)) {
 			if ($this->getEnabled()) {
 				// Register callbacks.
 				HookRegistry::register('TemplateManager::fetch', array($this, 'templateFetchCallback'));
