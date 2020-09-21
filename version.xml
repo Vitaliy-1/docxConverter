@@ -15,8 +15,8 @@
 <version>
 		<application>docxConverter</application>
 		<type>plugins.generic</type>
-		<release>0.5.2.0</release>
-		<date>2019-09-25</date>
+		<release>1.0.0.0</release>
+		<date>2020-09-21</date>
 		<lazy-load>1</lazy-load>
 		<class>docxToJatsPlugin</class>
 </version>
