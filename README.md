@@ -15,7 +15,7 @@ _Important note:_ as parsing references is not yet supported, the only way to ad
 ## What article elements are supported? 
 It is planned that DOCX to JATS XML Converter will support all major features of DOCX. The table below lists elements that are already supported and are planned to be developed in near future. The row `Planned for the 1.0.0 release` means that it's likely to be included in the first stable release, otherwise it's planned to be included later.
 
-| Feature                     | Supported        | Planned for the 1.0.0 release | Notes |
+| Feature                     | Supported        | Planned for the 1.1.0 release | Notes |
 |-----------------------------|------------------|-------------------------------|-------|
 |Paragraphs                   |:heavy_check_mark:|                               |All formatted text in the paragraph can be neste, e.g. **bold, _bold + italic_**. |
 |**Bold**                     |:heavy_check_mark:|                               |       |
@@ -24,21 +24,25 @@ It is planned that DOCX to JATS XML Converter will support all major features of
 |Text <sub>Subscript</sub>    |:heavy_check_mark:|                               |       |
 |~~Strikethrough~~            |:heavy_check_mark:|                               |       |
 |Lists                        |:heavy_check_mark:|                               |Can be nested |
-|List style                   |                  |:heavy_check_mark:             |       |
+|List style                   |:heavy_check_mark |                               |       |
 |Headings and sections        |:heavy_check_mark:|                               |Can be nested; OOXML headings are tranformed to the JATS XML sections with title and correspondent level |
 |Tables                       |:heavy_check_mark:|                               |       |
 |Cells with row- and colspan  |:heavy_check_mark:|                               |       |
-|Table caption                |                  |:heavy_check_mark:             |       |
-|JPEG and PNG Figures         |                  |:white_check_mark: (Partially) |       |
-|Figure caption               |                  |:heavy_check_mark:             |       |
+|Table caption                |                  |                               |       |
+|JPEG and PNG Figures         |:heavy_check_mark:|                               |       |
+|Figure caption               |                  |                               |       |
 |Diagrams                     |                  |                               |       |
 |Formulas                     |                  |                               |       |
 |Footnotes                    |                  |                               |       |
 |MS Word citations            |                  |:white_check_mark:             |       |
-|Zotero citations             |                  |                               |       |
+|Raw citations                |                  |:white_check_mark: 
+|Zotero citations             |:white_check_mark:|                               |Zotero Plugin for MS Word only |
 |External links               |:heavy_check_mark:|                               |       |
 |OOXML metadata               |                  |                               |OOXML contains limited set of metadata and this feature is rarely used by authors|
 |Article's metadata from OJS  |:white_check_mark:|                               |Metadata, like authors names, their affiliation, and article title is transfered from OJS; doesn't support abstracts yet|
+
+## Zotero support
+The plugin supports Zotero plugin for MS Word. To add structured references install Zotero plugin according to the [instructions](https://www.zotero.org/support/word_processor_plugin_troubleshooting). Please note that Zotero plugin for Libreoffice Writer and Google Docs isn't supported as they don't export bibliography in DOCX(OOXML) format. 
 
 ## How to achieve best results?
 The best results can be obtained only with articles that are structured. DOCX to JATS Converter Plugin should work with DOCX files produced by Google Docs, MS Word, and LibreOffice Writer. Although, there can be some drawbacks because these formats are not fully intercompatible.
