@@ -45,7 +45,28 @@ It is planned that DOCX to JATS XML Converter will support all major features of
 The plugin supports Zotero plugin for MS Word. To add structured references install Zotero plugin according to the [instructions](https://www.zotero.org/support/word_processor_plugin_troubleshooting). Please note that Zotero plugin for Libreoffice Writer and Google Docs isn't supported as they don't export bibliography in DOCX(OOXML) format. 
 
 ## How to achieve best results?
-The best results can be obtained only with articles that are structured. DOCX to JATS Converter Plugin should work with DOCX files produced by Google Docs, MS Word, and LibreOffice Writer. Although, there can be some drawbacks because these formats are not fully intercompatible.
+The best results can be obtained only with articles that are structured. DOCX to JATS Converter Plugin should work with DOCX files produced by Google Docs, MS Word, and LibreOffice Writer. Although, there can be some drawbacks because these formats are not fully intercompatible. DOCX is an archive that contains files that represent document's structure, inserted files and styling in [OOXML format](http://officeopenxml.com/).
+
+### General recommendations
+
+#### Document structure
+
+#### Paragraphs
+Paragraphs are text chunks separated by line breaks to which different styles can be applied. To be correctly recognized as article paragraphs the text should have a default style or normal text corresponding to the editor used.
+
+#### Sections and section titles 
+The inner structure of OOXML doesn't recognize article's section as a separate entity. To be recognized correctly section should be delimited by headings. Heading in OOXML are paragraphs to which correspondent style is applied - `heading` or `title` depending on the text editor.
+#### Lists
+According to the OOXML lists are enumerate entities which consist from one to several items. Each item can have own style similarly to paragraphs, such as `normal text`, `heading`, etc. Enumerate property has higher priority over all styles except `bibliography`, this means that if list has heading property the latter will be ignored by the converter and entity will be recognized only as a list. Nested lists are supported. 
+
+#### Tables
+Tables are recognized as separate elements with unique encoding in OOXML. In terms of a structure they are much similar to JATS XML - consist of rows and cells which can span or several rows or columns. Unfortunately Table title or caption isn't linked to the table in text editors which work with OOXML, this means they are usually encoded as simple paragraphs and cannot be recognized correctly with the plugin. The content of the cell isn't distinguishable from the paragraph; for the sake of simplicity if cell's content has only one paragraph, in the result JATS XML the paragraph tag will be dropped and text content directly appended to the cell. 
+
+#### Formatted text
+According to the OOXML, text is represented as runs with specific properties, such as bold, italic, superscript, subscript, underlined and strikethrough all of which are supported by the converter as well as all major text editors which allow DOCX format export. Text runs also contain information about font and it's size - they are not transfered to JATS XML as this format first of all designed to represent article's structure rather than styling. Text runs inside paragraphs, lists and table cells are handled in the same way by the converter.
+
+  
+
 
 ### Google Docs 
 The link to the general example: [google document](https://docs.google.com/document/d/1O3m27j1UgQ6YXPZCBZ9pR-j5xHQ6byOuo7-WngfY-p8/edit?usp=sharing).
