@@ -86,24 +86,29 @@ class DocxToJatsPlugin extends GenericPlugin {
 			/* @var $row GridRow */
 			$row = $templateMgr->get_template_vars('row');
 			$data = $row->getData();
-
 			if (is_array($data) && (isset($data['submissionFile']))) {
 				$submissionFile = $data['submissionFile'];
 				$fileExtension = strtolower($submissionFile->getExtension());
 
-				if (strtolower($fileExtension) == 'docx') {
+				// Ensure that the conversion is run on the appropriate workflow stage
+				$stageId = (int) $request->getUserVar('stageId');
+				$submissionId = $submissionFile->getSubmissionId();
+				$submission = Services::get('submission')->get($submissionId); /** @var $submission Submission */
+				$submissionStageId = $submission->getData('stageId');
 
-					$stageId = (int) $request->getUserVar('stageId');
-					//$path = $router->url($request, null, 'converter', 'parse', null, $actionArgs);
+				if (strtolower($fileExtension) == 'docx' &&
+					in_array($stageId, $this->getAllowedWorkflowStages()) &&
+					in_array($submissionStageId, $this->getAllowedWorkflowStages())) {
+
 					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
 						array(
-							'submissionId' => $submissionFile->getSubmissionId(),
+							'submissionId' => $submissionId,
 							'fileId' => $submissionFile->getFileId(),
 							'stageId' => $stageId
 						));
 					$pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access',
 						array(
-							'submissionId' => $submissionFile->getSubmissionId(),
+							'submissionId' => $submissionId,
 							'fileId' => $submissionFile->getFileId(),
 							'stageId' => $stageId
 						));
@@ -118,5 +123,12 @@ class DocxToJatsPlugin extends GenericPlugin {
 				}
 			}
 		}
+	}
+
+	public function getAllowedWorkflowStages() {
+		return [
+			WORKFLOW_STAGE_ID_EDITING,
+			WORKFLOW_STAGE_ID_PRODUCTION
+		];
 	}
 }
