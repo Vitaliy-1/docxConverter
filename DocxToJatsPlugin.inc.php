@@ -95,10 +95,21 @@ class DocxToJatsPlugin extends GenericPlugin {
 				$submissionId = $submissionFile->getSubmissionId();
 				$submission = Services::get('submission')->get($submissionId); /** @var $submission Submission */
 				$submissionStageId = $submission->getData('stageId');
+				$roles = $request->getUser()->getRoles($request->getContext()->getId());
 
-				if (strtolower($fileExtension) == 'docx' &&
-					in_array($stageId, $this->getAllowedWorkflowStages()) &&
-					in_array($submissionStageId, $this->getAllowedWorkflowStages())) {
+				$accessAllowed = false;
+				foreach ($roles as $role) {
+					if (in_array($role->getId(), [ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_ASSISTANT])) {
+						$accessAllowed = true;
+						break;
+					}
+				}
+
+				if (strtolower($fileExtension) == 'docx' && // show only for files with docx extension
+					$accessAllowed && // only for those that have access according to the DOCXConverterHandler rules
+					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
+					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
+					) {
 
 					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
 						array(
