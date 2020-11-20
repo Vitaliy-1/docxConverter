@@ -15,7 +15,7 @@ _Important note:_ as parsing references is not yet supported, the only way to ad
 ## What article elements are supported? 
 It is planned that DOCX to JATS XML Converter will support all major features of DOCX. The table below lists elements that are already supported and are planned to be developed in near future. The row `Planned for the 1.0.0 release` means that it's likely to be included in the first stable release, otherwise it's planned to be included later.
 
-| Feature                     | Supported        | Planned for the 1.1.0 release | Notes |
+| Feature                     | Supported        | Planned for the 1.2.0 release | Notes |
 |-----------------------------|------------------|-------------------------------|-------|
 |Paragraphs                   |:heavy_check_mark:|                               |All formatted text in the paragraph can be neste, e.g. **bold, _bold + italic_**. |
 |**Bold**                     |:heavy_check_mark:|                               |       |
@@ -28,15 +28,15 @@ It is planned that DOCX to JATS XML Converter will support all major features of
 |Headings and sections        |:heavy_check_mark:|                               |Can be nested; OOXML headings are tranformed to the JATS XML sections with title and correspondent level |
 |Tables                       |:heavy_check_mark:|                               |       |
 |Cells with row- and colspan  |:heavy_check_mark:|                               |       |
-|Table caption                |                  |                               |       |
+|Table caption                |:heavy_check_mark:|                               |       |
 |JPEG and PNG Figures         |:heavy_check_mark:|                               |       |
-|Figure caption               |                  |                               |       |
+|Figure caption               |:heavy_check_mark:|                               |       |
 |Diagrams                     |                  |                               |       |
-|Formulas                     |                  |                               |       |
-|Footnotes                    |                  |                               |       |
-|MS Word citations            |                  |:white_check_mark:             |       |
-|Raw citations                |                  |:white_check_mark: 
-|Zotero citations             |:white_check_mark:|                               |Zotero Plugin for MS Word only |
+|Formulas                     |                  |:heavy_check_mark:             |       |
+|Footnotes                    |                  |:heavy_check_mark:             |       |
+|MS Word citations            |                  |                               |       |
+|Raw citations                |:heavy_check_mark:|                               |       |
+|Zotero citations             |:heavy_check_mark:|                               |Zotero/Mendeley Plugin for MS Word, Mendeley plugin for LibreOffice Writer (export with MS Word support button)|
 |External links               |:heavy_check_mark:|                               |       |
 |OOXML metadata               |                  |                               |OOXML contains limited set of metadata and this feature is rarely used by authors|
 |Article's metadata from OJS  |:white_check_mark:|                               |Metadata, like authors names, their affiliation, and article title is transfered from OJS; doesn't support abstracts yet|

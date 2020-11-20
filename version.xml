@@ -4,8 +4,8 @@
 <!--
  * @file plugins/generic/docxConverter/version.xml
  *
- * Copyright (c) 2014-2019 Simon Fraser University Library
- * Copyright (c) 2003-2019 John Willinsky
+ * Copyright (c) 2014-2020 Simon Fraser University Library
+ * Copyright (c) 2003-2020 John Willinsky
  * Distributed under the GNU GPL v2.
  *
  * @brief plugin's information
@@ -15,8 +15,8 @@
 <version>
 		<application>docxConverter</application>
 		<type>plugins.generic</type>
-		<release>1.0.0.0</release>
-		<date>2020-09-21</date>
+		<release>1.1.0.0</release>
+		<date>2020-11-20</date>
 		<lazy-load>1</lazy-load>
 		<class>docxToJatsPlugin</class>
 </version>
