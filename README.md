@@ -24,7 +24,7 @@ It is planned that DOCX to JATS XML Converter will support all major features of
 |Text <sub>Subscript</sub>    |:heavy_check_mark:|                               |       |
 |~~Strikethrough~~            |:heavy_check_mark:|                               |       |
 |Lists                        |:heavy_check_mark:|                               |Can be nested |
-|List style                   |:heavy_check_mark |                               |       |
+|List style                   |:heavy_check_mark:|                               |       |
 |Headings and sections        |:heavy_check_mark:|                               |Can be nested; OOXML headings are tranformed to the JATS XML sections with title and correspondent level |
 |Tables                       |:heavy_check_mark:|                               |       |
 |Cells with row- and colspan  |:heavy_check_mark:|                               |       |
