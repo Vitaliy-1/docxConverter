@@ -12,10 +12,15 @@
 
 import('classes.handler.Handler');
 import('plugins.generic.docxConverter.classes.DOCXConverterDocument');
+import('lib.pkp.classes.file.PrivateFileManager');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
 use docx2jats\DOCXArchive;
 
 class ConverterHandler extends Handler {
+
+    /** @copydoc PKPHandler::_isBackendPage */
+    var $_isBackendPage = true;
+
 	/**
 	 * Constructor
 	 */
@@ -32,65 +37,78 @@ class ConverterHandler extends Handler {
 	 * @copydoc PKPHandler::authorize()
 	 */
 	function authorize($request, &$args, $roleAssignments) {
-		import('lib.pkp.classes.security.authorization.SubmissionFileAccessPolicy');
-		$this->addPolicy(new SubmissionFileAccessPolicy($request, $args, $roleAssignments, SUBMISSION_FILE_ACCESS_MODIFY));
+		import('lib.pkp.classes.security.authorization.WorkflowStageAccessPolicy');
+		$this->addPolicy(new WorkflowStageAccessPolicy($request, $args, $roleAssignments, 'submissionId', (int)$request->getUserVar('stageId')));
 		return parent::authorize($request, $args, $roleAssignments);
 	}
 
 	public function parse($args, $request) {
+		$fileId = (int) $request->getUserVar('fileId');
+		$submissionFiles = Services::get('submissionFile')->getMany([
+			'fileIds' => [$fileId],
+		]);
+		$submissionFile = $submissionFiles->current();
 
-		$user = $request->getUser();
-		$submissionFile = $this->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION_FILE);
-		$filePath = $submissionFile->getFilePath();
+		$fileManager = new PrivateFileManager();
+		$filePath = $fileManager->getBasePath() . '/' . $submissionFile->getData('path');
 
 		$docxArchive = new DOCXArchive($filePath);
 		$jatsXML = new DOCXConverterDocument($docxArchive);
 
-		$submissionDao = Application::getSubmissionDAO();
-		$submissionId = $submissionFile->getSubmissionId();
-		$submission = $submissionDao->getById($submissionId);
+		$submissionId = $submissionFile->getData('submissionId');
+		$submission = Services::get('submission')->get($submissionId);
 		$jatsXML->setDocumentMeta($request, $submission);
 		$tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfname, $jatsXML->saveXML());
-		$genreId = $submissionFile->getGenreId();
-		$fileSize = filesize($tmpfname);
+		$genreId = $submissionFile->getData('genreId');
 
-		$originalFileInfo = pathinfo($submissionFile->getOriginalFileName());
+		// Add new JATS XML file
+		$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		$newFileId = Services::get('file')->add(
+			$tmpfname,
+			$submissionDir . DIRECTORY_SEPARATOR . uniqid() . '.xml'
+		);
 
-		/* @var $newSubmissionFile SubmissionFile */
 		$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
-		$newSubmissionFile = $submissionFileDao->newDataObjectByGenreId($genreId);
-		$newSubmissionFile->setSubmissionId($submission->getId());
-		$newSubmissionFile->setSubmissionLocale($submission->getLocale());
-		$newSubmissionFile->setGenreId($genreId);
-		$newSubmissionFile->setFileStage($submissionFile->getFileStage());
-		$newSubmissionFile->setDateUploaded(Core::getCurrentDate());
-		$newSubmissionFile->setDateModified(Core::getCurrentDate());
-		$newSubmissionFile->setOriginalFileName($originalFileInfo['filename'] . ".xml");
-		$newSubmissionFile->setUploaderUserId($user->getId());
-		$newSubmissionFile->setFileSize($fileSize);
-		$newSubmissionFile->setFileType("text/xml");
-		$newSubmissionFile->setSourceFileId($submissionFile->getFileId());
-		$newSubmissionFile->setSourceRevision($submissionFile->getRevision());
-		$newSubmissionFile->setRevision(1);
-		$insertedSubmissionFile = $submissionFileDao->insertObject($newSubmissionFile, $tmpfname);
+		$newSubmissionFile = $submissionFileDao->newDataObject();
+		$newName = [];
+		foreach ($submissionFile->getData('name') as $localeKey => $name) {
+			$newName[$localeKey] = pathinfo($name)['filename'] . '.xml';
+		}
+
+		$newSubmissionFile->setAllData(
+			[
+				'fileId' => $newFileId,
+				'assocType' => $submissionFile->getData('assocType'),
+				'assocId' => $submissionFile->getData('assocId'),
+				'fileStage' => $submissionFile->getData('fileStage'),
+				'mimetype' => 'application/xml',
+				'locale' => $submissionFile->getData('locale'),
+				'genreId' => $genreId,
+				'name' => $newName,
+				'submissionId' => $submissionId,
+           ]
+        );
+
+		$newSubmissionFile = Services::get('submissionFile')->add($newSubmissionFile, $request);
+
 		unlink($tmpfname);
 
 		$mediaData = $docxArchive->getMediaFilesContent();
 		if (!empty($mediaData)) {
 			foreach ($mediaData as $originalName => $singleData) {
-				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $originalName, $singleData);
+				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $fileManager, $originalName, $singleData);
 			}
 		}
 
 		return new JSONMessage(true, array(
-			'submissionId' => $insertedSubmissionFile->getSubmissionId(),
-			'fileId' => $insertedSubmissionFile->getFileIdAndRevision(),
-			'fileStage' => $insertedSubmissionFile->getFileStage(),
+			'submissionId' => $submissionId,
+			'fileId' => $newSubmissionFile->getData('fileId'),
+			'fileStage' => $newSubmissionFile->getData('fileStage'),
 		));
 	}
 
-	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, string $originalName, string $singleData) {
+	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData) {
 		$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfnameSuppl, $singleData);
 		$mimeType = mime_content_type($tmpfnameSuppl);
@@ -110,22 +128,25 @@ class ConverterHandler extends Handler {
 			return;
 		}
 
-		// Set file
-		$supplementaryFile = $submissionFileDao->newDataObjectByGenreId($supplGenreId);
-		$supplementaryFile->setSubmissionId($submission->getId());
-		$supplementaryFile->setSubmissionLocale($submission->getLocale());
-		$supplementaryFile->setGenreId($supplGenreId);
-		$supplementaryFile->setFileStage(SUBMISSION_FILE_DEPENDENT);
-		$supplementaryFile->setDateUploaded(Core::getCurrentDate());
-		$supplementaryFile->setDateModified(Core::getCurrentDate());
-		$supplementaryFile->setUploaderUserId($request->getUser()->getId());
-		$supplementaryFile->setFileSize(filesize($tmpfnameSuppl));
-		$supplementaryFile->setFileType($mimeType);
-		$supplementaryFile->setAssocId($newSubmissionFile->getFileId());
-		$supplementaryFile->setAssocType(ASSOC_TYPE_SUBMISSION_FILE);
-		$supplementaryFile->setOriginalFileName(basename($originalName));
+		$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
+		$newFileId = Services::get('file')->add(
+			$tmpfnameSuppl,
+			$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
+		);
 
-		$submissionFileDao->insertObject($supplementaryFile, $tmpfnameSuppl);
+		// Set file
+		$newSupplementaryFile = $submissionFileDao->newDataObject();
+		$newSupplementaryFile->setAllData([
+			'fileId' => $newFileId,
+			'assocId' => $newSubmissionFile->getId(),
+			'assocType' => ASSOC_TYPE_SUBMISSION_FILE,
+			'fileStage' => SUBMISSION_FILE_DEPENDENT,
+			'submissionId' => $submission->getId(),
+			'genreId' => $supplGenreId,
+			'name' => array_fill_keys(array_keys($newSubmissionFile->getData('name')), basename($originalName))
+		]);
+
+		Services::get('submissionFile')->add($newSupplementaryFile, $request);
 		unlink($tmpfnameSuppl);
 	}
 

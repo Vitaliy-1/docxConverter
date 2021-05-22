@@ -84,15 +84,15 @@ class DocxToJatsPlugin extends GenericPlugin {
 		$resourceName = $params[1];
 		if ($resourceName == 'controllers/grid/gridRow.tpl') {
 			/* @var $row GridRow */
-			$row = $templateMgr->get_template_vars('row');
+			$row = $templateMgr->getTemplateVars('row');
 			$data = $row->getData();
 			if (is_array($data) && (isset($data['submissionFile']))) {
 				$submissionFile = $data['submissionFile'];
-				$fileExtension = strtolower($submissionFile->getExtension());
+				$fileExtension = strtolower($submissionFile->getData('mimetype'));
 
 				// Ensure that the conversion is run on the appropriate workflow stage
 				$stageId = (int) $request->getUserVar('stageId');
-				$submissionId = $submissionFile->getSubmissionId();
+				$submissionId = $submissionFile->getData('submissionId');
 				$submission = Services::get('submission')->get($submissionId); /** @var $submission Submission */
 				$submissionStageId = $submission->getData('stageId');
 				$roles = $request->getUser()->getRoles($request->getContext()->getId());
@@ -104,8 +104,7 @@ class DocxToJatsPlugin extends GenericPlugin {
 						break;
 					}
 				}
-
-				if (strtolower($fileExtension) == 'docx' && // show only for files with docx extension
+				if (strtolower($fileExtension) == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && // show only for files with docx extension
 					$accessAllowed && // only for those that have access according to the DOCXConverterHandler rules
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
@@ -114,13 +113,13 @@ class DocxToJatsPlugin extends GenericPlugin {
 					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
 						array(
 							'submissionId' => $submissionId,
-							'fileId' => $submissionFile->getFileId(),
+							'fileId' => $submissionFile->getData('fileId'),
 							'stageId' => $stageId
 						));
 					$pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access',
 						array(
 							'submissionId' => $submissionId,
-							'fileId' => $submissionFile->getFileId(),
+							'fileId' => $submissionFile->getData('fileId'),
 							'stageId' => $stageId
 						));
 
