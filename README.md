@@ -14,7 +14,7 @@ _Important note:_ as parsing references is not yet supported, the only way to ad
 
 ## Usage
 DOCX to JATS XML Converter doesn't require any additional configurations. When the article reaches Copyediting or Production stage, `Convert to JATS XML` button appears under the DOCX file as per screenshot.
-![Screenshot from the copyediting stage when plugin is activated](https://github.com/Vitaliy-1/docxConverter/blob/master/images/docx_grid.png?raw=true)
+![Screenshot from the copyediting stage when plugin is activated](https://github.com/Vitaliy-1/docxConverter/blob/main/images/docx_grid.png?raw=true)
 Pressing the button triggers automatic conversion and if the process is successful, new xml file appears in the same grid, under the original one. Otherwise, it may mean that during the conversion process an error occured or the plugin doesn't support the DOCX file with the specific inner structure. For debugging purposes, when openining a new issue, please specify PHP error, associated with the issue.  
 
 ## What article elements are supported? 
