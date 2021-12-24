@@ -104,7 +104,7 @@ class DocxToJatsPlugin extends GenericPlugin {
 						break;
 					}
 				}
-				if (strtolower($fileExtension) == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && // show only for files with docx extension
+				if (in_array(strtolower($fileExtension), static::getSupportedMimetypes()) && // show only for files with docx extension
 					$accessAllowed && // only for those that have access according to the DOCXConverterHandler rules
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
@@ -141,4 +141,17 @@ class DocxToJatsPlugin extends GenericPlugin {
 			WORKFLOW_STAGE_ID_PRODUCTION
 		];
 	}
+
+    /**
+     * @return string[] MIME type supported by the plugin for conversion
+     */
+    public static function getSupportedMimetypes()
+    {
+        return [
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            // OJS identifies Google Docs files exported in DOCX format as having this MIME type
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.documentapplication/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+    }
+
 }
