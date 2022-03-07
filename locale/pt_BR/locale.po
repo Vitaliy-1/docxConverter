@@ -12,7 +12,7 @@ msgstr ""
 "Language: pt_BR\n"
 
 msgid "plugins.generic.docxToJats.displayName"
-msgstr "Plugin do Conversão XML DOCX para JATS"
+msgstr "Plugin de Conversão XML DOCX para JATS"
 
 msgid "plugins.generic.docxToJats.description"
 msgstr "É desenvolvido para transformar artigos científicos em formato DOCX (OOXML) para JATS XML."
