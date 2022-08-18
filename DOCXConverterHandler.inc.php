@@ -43,11 +43,8 @@ class ConverterHandler extends Handler {
 	}
 
 	public function parse($args, $request) {
-		$fileId = (int) $request->getUserVar('fileId');
-		$submissionFiles = Services::get('submissionFile')->getMany([
-			'fileIds' => [$fileId],
-		]);
-		$submissionFile = $submissionFiles->current();
+		$submissionFileId = (int) $request->getUserVar('submissionFileId');
+		$submissionFile = Services::get('submissionFile')->get($submissionFileId);
 
 		$fileManager = new PrivateFileManager();
 		$filePath = $fileManager->getBasePath() . '/' . $submissionFile->getData('path');
