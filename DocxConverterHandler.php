@@ -10,11 +10,28 @@
  * @brief handler for the grid's conversion
  */
 
-import('classes.handler.Handler');
-import('plugins.generic.docxConverter.classes.DOCXConverterDocument');
-import('lib.pkp.classes.file.PrivateFileManager');
-require_once __DIR__ . "/docxToJats/vendor/autoload.php";
-use docx2jats\DOCXArchive;
+namespace APP\plugins\generic\docxConverter;
+
+use const ROLE_ID_MANAGER;
+use const ROLE_ID_SUB_EDITOR;
+use const ROLE_ID_ASSISTANT;
+
+
+use APP\handler\Handler;
+use APP\facades\Repo;
+use APP\core\Request;
+use PKP\plugins\PluginRegistry;
+use APP\plugins\generic\docxConverter\DOCXConverterPlugin;
+use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
+use APP\plugins\generic\docxConverter\classes\DOCXArchive;
+use PKP\core\JSONMessage;		
+use PKP\file\PrivateFileManager;
+use PKP\security\authorization\WorkflowStageAccessPolicy;
+//use classes\DOCXConverterDocument;
+//use docx2jats\DOCXArchive;
+
+//require_once __DIR__ . "/docxToJats/vendor/autoload.php";
+
 
 class ConverterHandler extends Handler {
 
@@ -26,9 +43,9 @@ class ConverterHandler extends Handler {
 	 */
 	function __construct() {
 		parent::__construct();
-		$this->_plugin = PluginRegistry::getPlugin('generic', CONVERTER_PLUGIN_NAME);
+		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxConverterPlugin');
 		$this->addRoleAssignment(
-			array(ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_ASSISTANT),
+			array(\PKP\security\Role::ROLE_ID_MANAGER, \PKP\security\Role::ROLE_ID_SUB_EDITOR, \PKP\security\Role::ROLE_ID_ASSISTANT),
 			array('parse')
 		);
 	}
@@ -43,6 +60,10 @@ class ConverterHandler extends Handler {
 	}
 
 	public function parse($args, $request) {
+		
+		 error_log("✳️ Entró al método parse");
+		/*
+
 		$submissionFileId = (int) $request->getUserVar('submissionFileId');
 		$submissionFile = Services::get('submissionFile')->get($submissionFileId);
 
@@ -97,14 +118,11 @@ class ConverterHandler extends Handler {
 				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $fileManager, $originalName, $singleData);
 			}
 		}
-
-		return new JSONMessage(true, array(
-			'submissionId' => $submissionId,
-			'fileId' => $newSubmissionFile->getData('fileId'),
-			'fileStage' => $newSubmissionFile->getData('fileStage'),
-		));
+		*/
+		return new JSONMessage(true, null);
 	}
 
+	/*
 	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData) {
 		$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfnameSuppl, $singleData);
@@ -145,6 +163,6 @@ class ConverterHandler extends Handler {
 
 		Services::get('submissionFile')->add($newSupplementaryFile, $request);
 		unlink($tmpfnameSuppl);
-	}
+	}*/
 
 }

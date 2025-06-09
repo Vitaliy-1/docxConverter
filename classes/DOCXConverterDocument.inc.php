@@ -10,7 +10,10 @@
  * @brief extends the creator class for JATS XML
  */
 
-require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
+
+namespace APP\plugins\generic\classes;
+
+//require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
 use docx2jats\DOCXArchive;
 

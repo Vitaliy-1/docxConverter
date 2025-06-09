@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/DocxToJatsPlugin.inc.php
+ * @file plugins/generic/docxConverter/docxConverter.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,9 +10,17 @@
  * @brief main class of the DOCX to JATS XML Converter Plugin
  */
 
-import('lib.pkp.classes.plugins.GenericPlugin');
+ namespace APP\plugins\generic\docxConverter;
 
-class DocxToJatsPlugin extends GenericPlugin {
+ use PKP\plugins\GenericPlugin;
+ use PKP\linkAction\LinkAction;
+ use PKP\linkAction\request\AjaxModal;
+ use PKP\linkAction\request\PostAndRedirectAction;
+
+ use PKP\plugins\Hook;
+ use APP\facades\Repo;
+
+class DocxConverterPlugin extends GenericPlugin {
 	/**
 	 * @copydoc Plugin::getDisplayName()
 	 */
@@ -40,8 +48,8 @@ class DocxToJatsPlugin extends GenericPlugin {
 		if (parent::register($category, $path, $mainContextId)) {
 			if ($this->getEnabled()) {
 				// Register callbacks.
-				HookRegistry::register('TemplateManager::fetch', array($this, 'templateFetchCallback'));
-				HookRegistry::register('LoadHandler', array($this, 'callbackLoadHandler'));
+				Hook::add('TemplateManager::fetch', [$this, 'templateFetchCallback']);
+				Hook::add('LoadHandler', [$this, 'callbackLoadHandler']);
 				$this->_registerTemplateResource();
 			}
 			return true;
@@ -58,14 +66,39 @@ class DocxToJatsPlugin extends GenericPlugin {
 		return $request->getBaseUrl() . '/' . $this->getPluginPath();
 	}
 
-	public function callbackLoadHandler($hookName, $args) {
+public function callbackLoadHandler($hookName, $args) {
+    $page = $args[0]; // page=docxParser
+    $op = $args[1];   // op=parse
+
+    error_log('callbackLoadHandler: page=' . $page . ', op=' . $op);
+    error_log('$_SERVER["REQUEST_URI"]: ' . $_SERVER["REQUEST_URI"]);
+    error_log('$_GET: ' . print_r($_GET, true));
+
+    if ($page === 'docxParser' && $op === 'parse') {
+        error_log('callbackLoadHandler: cargando el handler para docxParser');
+
+        // Ruta absoluta al archivo del handler
+        require_once($this->getPluginPath() . '/DocxConverterHandler.php');
+
+        // ⚠️ Esta línea es la clave para evitar el 404
+        define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\ConverterHandler');
+
+        return true; // muy importante devolver true
+    }
+
+    return false;
+}
+
+
+
+	public function callbackLoadHandlerAux($hookName, $args) {
 		$page = $args[0];
 		$op = $args[1];
 
 		if ($page == "docxParser" && $op == "parse") {
 			define('HANDLER_CLASS', 'ConverterHandler');
 			define('CONVERTER_PLUGIN_NAME', $this->getName());
-			$args[2] = $this->getPluginPath() . '/' . 'DOCXConverterHandler.inc.php';
+			$args[2] = $this->getPluginPath() . '/' . 'DocxConverterHandler.php';
 		}
 
 		return false;
@@ -93,7 +126,11 @@ class DocxToJatsPlugin extends GenericPlugin {
 				// Ensure that the conversion is run on the appropriate workflow stage
 				$stageId = (int) $request->getUserVar('stageId');
 				$submissionId = $submissionFile->getData('submissionId');
-				$submission = Services::get('submission')->get($submissionId); /** @var $submission Submission */
+				
+				/* $submission = Services::get('submission')->get($submissionId);**/ /** @var $submission Submission */
+				/* Remplazado por Santiago */
+				$submission = Repo::submission()->get($submissionId);
+
 				$submissionStageId = $submission->getData('stageId');
 				$roles = $request->getUser()->getRoles($request->getContext()->getId());
 
@@ -105,10 +142,14 @@ class DocxToJatsPlugin extends GenericPlugin {
 					}
 				}
 				if (in_array(strtolower($fileExtension), static::getSupportedMimetypes()) && // show only for files with docx extension
-					$accessAllowed && // only for those that have access according to the DOCXConverterHandler rules
+					$accessAllowed && // only for those that have access according to the DocxConverterHandler rules
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
 					) {
+
+					// Add the conversion link
+					// https://exampel.org/publicknowledg/issue/view/1 
+					// ---------------------------------- 
 
 					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
 						array(
@@ -116,13 +157,14 @@ class DocxToJatsPlugin extends GenericPlugin {
 							'submissionFileId' => $submissionFile->getId(),
 							'stageId' => $stageId
 						));
+
 					$pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access', $submissionId);
 
-					import('lib.pkp.classes.linkAction.request.AjaxAction');
+					/*import('lib.pkp.classes.linkAction.request.AjaxAction');*/
 					$linkAction = new LinkAction(
 						'parse',
 						new PostAndRedirectAction($path, $pathRedirect),
-						__('plugins.generic.docxToJats.button.parseDocx')
+						$path
 					);
 					$row->addAction($linkAction);
 				}
@@ -149,4 +191,8 @@ class DocxToJatsPlugin extends GenericPlugin {
         ];
     }
 
+}
+
+if (!PKP_STRICT_MODE) {
+    class_alias('APP\plugins\generic\docxConverter\DOCXConverterPlugin', '\DOCXConverterPlugin');
 }
