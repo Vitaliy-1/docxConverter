@@ -12,25 +12,20 @@
 
 namespace APP\plugins\generic\docxConverter;
 
-use const ROLE_ID_MANAGER;
-use const ROLE_ID_SUB_EDITOR;
-use const ROLE_ID_ASSISTANT;
-
-
+use APP\core\Services;
+use APP\core\Request;
+use PKP\core\JSONMessage;
 use APP\handler\Handler;
 use APP\facades\Repo;
-use APP\core\Request;
 use PKP\plugins\PluginRegistry;
 use APP\plugins\generic\docxConverter\DOCXConverterPlugin;
 use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
-use APP\plugins\generic\docxConverter\classes\DOCXArchive;
-use PKP\core\JSONMessage;		
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
-//use classes\DOCXConverterDocument;
-//use docx2jats\DOCXArchive;
 
-//require_once __DIR__ . "/docxToJats/vendor/autoload.php";
+require_once(__DIR__ . '/classes/DOCXConverterDocument.inc.php');
+require_once __DIR__ . "/docxToJats/vendor/autoload.php";
+use docx2jats\DOCXArchive;
 
 
 class ConverterHandler extends Handler {
@@ -61,34 +56,46 @@ class ConverterHandler extends Handler {
 
 	public function parse($args, $request) {
 		
-		 error_log("✳️ Entró al método parse");
-		/*
-
 		$submissionFileId = (int) $request->getUserVar('submissionFileId');
-		$submissionFile = Services::get('submissionFile')->get($submissionFileId);
+		$submissionFile = Repo::submissionFile()->get($submissionFileId);
 
 		$fileManager = new PrivateFileManager();
 		$filePath = $fileManager->getBasePath() . '/' . $submissionFile->getData('path');
-
+		
 		$docxArchive = new DOCXArchive($filePath);
 		$jatsXML = new DOCXConverterDocument($docxArchive);
 
+
 		$submissionId = $submissionFile->getData('submissionId');
-		$submission = Services::get('submission')->get($submissionId);
+
+		// Replaced by Santiago
+		//$submission = Services::get('submission')->get($submissionId);
+		$submission = Repo::submission()->get($submissionId);
+
+		
 		$jatsXML->setDocumentMeta($request, $submission);
+
+		// Add new JATS XML file
+		// Create a temporary file to store the JATS XML
 		$tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfname, $jatsXML->saveXML());
 		$genreId = $submissionFile->getData('genreId');
+		error_log("genreId:".$genreId);
+		
 
-		// Add new JATS XML file
-		$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		// Obtain the submission directory
+        //$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		error_log("submissionDir:".$submissionDir);
+		error_log("filePath:".$filePath);
+
 		$newFileId = Services::get('file')->add(
 			$tmpfname,
 			$submissionDir . DIRECTORY_SEPARATOR . uniqid() . '.xml'
 		);
 
-		$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
-		$newSubmissionFile = $submissionFileDao->newDataObject();
+		$newSubmissionFile = Repo::submissionFile()->newDataObject();
+
 		$newName = [];
 		foreach ($submissionFile->getData('name') as $localeKey => $name) {
 			$newName[$localeKey] = pathinfo($name)['filename'] . '.xml';
@@ -107,22 +114,24 @@ class ConverterHandler extends Handler {
 				'submissionId' => $submissionId,
            ]
         );
-
-		$newSubmissionFile = Services::get('submissionFile')->add($newSubmissionFile, $request);
+		$newSubmissionFile = Repo::submissionFile()->add($newSubmissionFile, $request);
 
 		unlink($tmpfname);
-
+		/*
 		$mediaData = $docxArchive->getMediaFilesContent();
 		if (!empty($mediaData)) {
 			foreach ($mediaData as $originalName => $singleData) {
 				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $fileManager, $originalName, $singleData);
 			}
-		}
-		*/
-		return new JSONMessage(true, null);
+		}*/
+		return new JSONMessage(true, array(
+			'submissionId' => $submissionId,
+			'fileId' => $newSubmissionFile->getData('fileId'),
+			'fileStage' => $newSubmissionFile->getData('fileStage'),
+		));
 	}
 
-	/*
+	
 	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData) {
 		$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfnameSuppl, $singleData);
@@ -143,7 +152,9 @@ class ConverterHandler extends Handler {
 			return;
 		}
 
-		$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
+		// Replaced by Santiago, not necessary
+		//$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
+		
 		$newFileId = Services::get('file')->add(
 			$tmpfnameSuppl,
 			$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
@@ -161,8 +172,11 @@ class ConverterHandler extends Handler {
 			'name' => array_fill_keys(array_keys($newSubmissionFile->getData('name')), basename($originalName))
 		]);
 
-		Services::get('submissionFile')->add($newSupplementaryFile, $request);
+		// Replaced by Santiago, not necessary
+		//Services::get('submissionFile')->add($newSupplementaryFile, $request);
+		$newSupplementaryFile = Repo::submissionFile()->add($newSupplementaryFile, $request);
+
 		unlink($tmpfnameSuppl);
-	}*/
+	}
 
 }

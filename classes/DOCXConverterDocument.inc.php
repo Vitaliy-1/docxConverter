@@ -10,12 +10,15 @@
  * @brief extends the creator class for JATS XML
  */
 
+namespace APP\plugins\generic\docxConverter\classes;
 
-namespace APP\plugins\generic\classes;
-
-//require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
+require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
 use docx2jats\DOCXArchive;
+use DOMXPath;
+use APP\core\Request;
+use APP\submission\Submission;
+use DateTime;
 
 class DOCXConverterDocument extends Document {
 
@@ -30,7 +33,7 @@ class DOCXConverterDocument extends Document {
 		$this->stripExternalLinks();
 	}
 
-	public function setDocumentMeta(Request $reguest, Submission $submission) {
+	public function setDocumentMeta(Request $request, Submission $submission) {
 
 		// Delete all nodes if exist
 		while($this->front->hasChildNodes()) {
@@ -52,6 +55,8 @@ class DOCXConverterDocument extends Document {
 			$titleGroup->appendChild($subtitle);
 		}
 
+		//Submission Call to undefined method getAuthors()
+		if(false)
 		if (!empty($submission->getAuthors())) {
 			$contribGroup = $this->createElement("contrib-group");
 			$contribGroup->setAttribute("content-type", "author");
@@ -95,7 +100,7 @@ class DOCXConverterDocument extends Document {
 				$aff->appendChild($country);
 			}
 		}
-
+		
 		$history = $this->createElement("history");
 		$articleMeta->appendChild($history);
 
@@ -171,4 +176,7 @@ class DOCXConverterDocument extends Document {
 			$parentNode->parentNode->removeChild($parentNode);
 		}
 	}
+}
+if (!PKP_STRICT_MODE) {
+    class_alias('APP\plugins\generic\docxConverter\classes\DOCXConverterDocument', '\DOCXConverterDocument');
 }
