@@ -55,14 +55,17 @@ class DOCXConverterDocument extends Document {
 			$titleGroup->appendChild($subtitle);
 		}
 
-		//Submission Call to undefined method getAuthors()
-		if(false)
-		if (!empty($submission->getAuthors())) {
+
+		//Ahora obtenemos el autor desde la publicacion 
+		$publication = $submission->getCurrentPublication();
+		$authors = $publication->getData('authors');  
+		
+		if (!empty($authors)) {
 			$contribGroup = $this->createElement("contrib-group");
 			$contribGroup->setAttribute("content-type", "author");
 			$articleMeta->appendChild($contribGroup);
 
-			foreach ($submission->getAuthors() as $key => $author) {
+			foreach ($authors as $key => $author) {
 				/* @var $author Author */
 				$contrib = $this->createElement("contrib");
 				$contrib->setAttribute("contrib-type", "person");

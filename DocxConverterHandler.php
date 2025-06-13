@@ -22,6 +22,7 @@ use APP\plugins\generic\docxConverter\DOCXConverterPlugin;
 use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
+use PKP\security\Role;
 
 require_once(__DIR__ . '/classes/DOCXConverterDocument.inc.php');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
@@ -40,7 +41,7 @@ class ConverterHandler extends Handler {
 		parent::__construct();
 		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxConverterPlugin');
 		$this->addRoleAssignment(
-			array(\PKP\security\Role::ROLE_ID_MANAGER, \PKP\security\Role::ROLE_ID_SUB_EDITOR, \PKP\security\Role::ROLE_ID_ASSISTANT),
+			array(Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT),
 			array('parse')
 		);
 	}
@@ -49,7 +50,6 @@ class ConverterHandler extends Handler {
 	 * @copydoc PKPHandler::authorize()
 	 */
 	function authorize($request, &$args, $roleAssignments) {
-		import('lib.pkp.classes.security.authorization.WorkflowStageAccessPolicy');
 		$this->addPolicy(new WorkflowStageAccessPolicy($request, $args, $roleAssignments, 'submissionId', (int)$request->getUserVar('stageId')));
 		return parent::authorize($request, $args, $roleAssignments);
 	}
@@ -62,9 +62,9 @@ class ConverterHandler extends Handler {
 		$fileManager = new PrivateFileManager();
 		$filePath = $fileManager->getBasePath() . '/' . $submissionFile->getData('path');
 		
+
 		$docxArchive = new DOCXArchive($filePath);
 		$jatsXML = new DOCXConverterDocument($docxArchive);
-
 
 		$submissionId = $submissionFile->getData('submissionId');
 
@@ -72,7 +72,6 @@ class ConverterHandler extends Handler {
 		//$submission = Services::get('submission')->get($submissionId);
 		$submission = Repo::submission()->get($submissionId);
 
-		
 		$jatsXML->setDocumentMeta($request, $submission);
 
 		// Add new JATS XML file
@@ -80,14 +79,10 @@ class ConverterHandler extends Handler {
 		$tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfname, $jatsXML->saveXML());
 		$genreId = $submissionFile->getData('genreId');
-		error_log("genreId:".$genreId);
-		
 
 		// Obtain the submission directory
         //$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
 		$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submissionId);
-		error_log("submissionDir:".$submissionDir);
-		error_log("filePath:".$filePath);
 
 		$newFileId = Services::get('file')->add(
 			$tmpfname,
@@ -114,16 +109,20 @@ class ConverterHandler extends Handler {
 				'submissionId' => $submissionId,
            ]
         );
-		$newSubmissionFile = Repo::submissionFile()->add($newSubmissionFile, $request);
+		
+		Repo::submissionFile()->add($newSubmissionFile, $request);
 
 		unlink($tmpfname);
-		/*
+
+		
 		$mediaData = $docxArchive->getMediaFilesContent();
+		
 		if (!empty($mediaData)) {
 			foreach ($mediaData as $originalName => $singleData) {
 				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $fileManager, $originalName, $singleData);
 			}
-		}*/
+		}
+		
 		return new JSONMessage(true, array(
 			'submissionId' => $submissionId,
 			'fileId' => $newSubmissionFile->getData('fileId'),
@@ -140,6 +139,7 @@ class ConverterHandler extends Handler {
 		// Determine genre
 		$genreDao = DAORegistry::getDAO('GenreDAO');
 		$genres = $genreDao->getByDependenceAndContextId(true, $request->getContext()->getId());
+
 		$supplGenreId = null;
 		while ($genre = $genres->next()) {
 			if (($mimeType == "image/png" || $mimeType == "image/jpeg") && $genre->getKey() == "IMAGE") {

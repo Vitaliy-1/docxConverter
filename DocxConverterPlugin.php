@@ -67,42 +67,21 @@ class DocxConverterPlugin extends GenericPlugin {
 	}
 
 public function callbackLoadHandler($hookName, $args) {
-    $page = $args[0]; // page=docxParser
-    $op = $args[1];   // op=parse
-
-    error_log('callbackLoadHandler: page=' . $page . ', op=' . $op);
-    error_log('$_SERVER["REQUEST_URI"]: ' . $_SERVER["REQUEST_URI"]);
-    error_log('$_GET: ' . print_r($_GET, true));
+    $page = $args[0]; 
+    $op = $args[1];   
+    //error_log('$_SERVER["REQUEST_URI"]: ' . $_SERVER["REQUEST_URI"]);
+    //error_log('$_GET: ' . print_r($_GET, true));
 
     if ($page === 'docxParser' && $op === 'parse') {
-        error_log('callbackLoadHandler: cargando el handler para docxParser');
-
         // Ruta absoluta al archivo del handler
         require_once($this->getPluginPath() . '/DocxConverterHandler.php');
-
-        // ⚠️ Esta línea es la clave para evitar el 404
+        // Esta línea es la clave para evitar el 404
         define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\ConverterHandler');
-
-        return true; // muy importante devolver true
+        return true;
     }
-
     return false;
 }
 
-
-
-	public function callbackLoadHandlerAux($hookName, $args) {
-		$page = $args[0];
-		$op = $args[1];
-
-		if ($page == "docxParser" && $op == "parse") {
-			define('HANDLER_CLASS', 'ConverterHandler');
-			define('CONVERTER_PLUGIN_NAME', $this->getName());
-			$args[2] = $this->getPluginPath() . '/' . 'DocxConverterHandler.php';
-		}
-
-		return false;
-	}
 
 	/**
 	 * Adds additional links to submission files grid row
@@ -160,7 +139,7 @@ public function callbackLoadHandler($hookName, $args) {
 
 					$pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access', $submissionId);
 
-					/*import('lib.pkp.classes.linkAction.request.AjaxAction');*/
+				
 					$linkAction = new LinkAction(
 						'parse',
 						new PostAndRedirectAction($path, $pathRedirect),
