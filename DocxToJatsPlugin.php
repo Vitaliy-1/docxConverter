@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/docxConverter.inc.php
+ * @file plugins/generic/docxToJats/DocxToJats.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,7 @@
  * @brief main class of the DOCX to JATS XML Converter Plugin
  */
 
- namespace APP\plugins\generic\docxConverter;
+ namespace APP\plugins\generic\docxToJats;
 
  use PKP\plugins\GenericPlugin;
  use PKP\linkAction\LinkAction;
@@ -20,7 +20,7 @@
  use PKP\plugins\Hook;
  use APP\facades\Repo;
 
-class DocxConverterPlugin extends GenericPlugin {
+class DocxToJatsPlugin extends GenericPlugin {
 	/**
 	 * @copydoc Plugin::getDisplayName()
 	 */
@@ -74,9 +74,9 @@ public function callbackLoadHandler($hookName, $args) {
 
     if ($page === 'docxParser' && $op === 'parse') {
         // Ruta absoluta al archivo del handler
-        require_once($this->getPluginPath() . '/DocxConverterHandler.php');
+        require_once($this->getPluginPath() . '/DocxToJatsHandler.php');
         // Esta línea es la clave para evitar el 404
-        define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\ConverterHandler');
+        define('HANDLER_CLASS', '\APP\plugins\generic\docxToJats\DocxToJatsHandler');
         return true;
     }
     return false;
@@ -121,7 +121,7 @@ public function callbackLoadHandler($hookName, $args) {
 					}
 				}
 				if (in_array(strtolower($fileExtension), static::getSupportedMimetypes()) && // show only for files with docx extension
-					$accessAllowed && // only for those that have access according to the DocxConverterHandler rules
+					$accessAllowed && // only for those that have access according to the docxToJatsHandler rules
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
 					) {
@@ -143,7 +143,7 @@ public function callbackLoadHandler($hookName, $args) {
 					$linkAction = new LinkAction(
 						'parse',
 						new PostAndRedirectAction($path, $pathRedirect),
-						$path
+						__('plugins.generic.docxToJats.button.parseDocx')
 					);
 					$row->addAction($linkAction);
 				}
@@ -173,5 +173,5 @@ public function callbackLoadHandler($hookName, $args) {
 }
 
 if (!PKP_STRICT_MODE) {
-    class_alias('APP\plugins\generic\docxConverter\DOCXConverterPlugin', '\DOCXConverterPlugin');
+    class_alias('APP\plugins\generic\docxToJats\DocxToJatsPlugin', '\DocxToJatsPlugin');
 }

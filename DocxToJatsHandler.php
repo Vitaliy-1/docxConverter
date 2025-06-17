@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/DOCXConverterHandler.inc.php
+ * @file plugins/generic/docxToJats/DocxToJatsHandler.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,7 @@
  * @brief handler for the grid's conversion
  */
 
-namespace APP\plugins\generic\docxConverter;
+namespace APP\plugins\generic\docxToJats;
 
 use APP\core\Services;
 use APP\core\Request;
@@ -18,8 +18,8 @@ use PKP\core\JSONMessage;
 use APP\handler\Handler;
 use APP\facades\Repo;
 use PKP\plugins\PluginRegistry;
-use APP\plugins\generic\docxConverter\DOCXConverterPlugin;
-use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
+
+use APP\plugins\generic\docxToJats\classes\DocxToJatsDocument;
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
@@ -29,12 +29,12 @@ use PKP\submissionFile\SubmissionFile;
 use PKP\genre\GenreDAO as GenreDAO; 
 use DAORegistry;
 
-require_once(__DIR__ . '/classes/DOCXConverterDocument.inc.php');
+require_once(__DIR__ . '/classes/DocxToJatsDocument.php');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
 use docx2jats\DOCXArchive;
 
 
-class ConverterHandler extends Handler {
+class DocxToJatsHandler extends Handler {
 
     /** @copydoc PKPHandler::_isBackendPage */
     var $_isBackendPage = true;
@@ -44,7 +44,7 @@ class ConverterHandler extends Handler {
 	 */
 	function __construct() {
 		parent::__construct();
-		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxConverterPlugin');
+		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxToJatsPlugin');
 		$this->addRoleAssignment(
 			array(Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT),
 			array('parse')
@@ -69,7 +69,7 @@ class ConverterHandler extends Handler {
 		
 
 		$docxArchive = new DOCXArchive($filePath);
-		$jatsXML = new DOCXConverterDocument($docxArchive);
+		$jatsXML = new DocxToJatsDocument($docxArchive);
 
 		$submissionId = $submissionFile->getData('submissionId');
 
