@@ -23,6 +23,11 @@ use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
+use APP\submission\Submission;
+use PKP\submissionFile\SubmissionFile;
+//import DAORegistry;
+use PKP\genre\GenreDAO as GenreDAO; 
+use DAORegistry;
 
 require_once(__DIR__ . '/classes/DOCXConverterDocument.inc.php');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
@@ -119,7 +124,7 @@ class ConverterHandler extends Handler {
 		
 		if (!empty($mediaData)) {
 			foreach ($mediaData as $originalName => $singleData) {
-				$this->_attachSupplementaryFile($request, $submission, $submissionFileDao, $newSubmissionFile, $fileManager, $originalName, $singleData);
+				$this->_attachSupplementaryFile($request, $submission, $newSubmissionFile, $fileManager, $originalName, $singleData);
 			}
 		}
 		
@@ -130,53 +135,53 @@ class ConverterHandler extends Handler {
 		));
 	}
 
-	
-	private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFileDAO $submissionFileDao, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData) {
-		$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
-		file_put_contents($tmpfnameSuppl, $singleData);
-		$mimeType = mime_content_type($tmpfnameSuppl);
 
-		// Determine genre
-		$genreDao = DAORegistry::getDAO('GenreDAO');
-		$genres = $genreDao->getByDependenceAndContextId(true, $request->getContext()->getId());
+private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData) {
+	$tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
+	file_put_contents($tmpfnameSuppl, $singleData);
+	$mimeType = mime_content_type($tmpfnameSuppl);
 
-		$supplGenreId = null;
-		while ($genre = $genres->next()) {
-			if (($mimeType == "image/png" || $mimeType == "image/jpeg") && $genre->getKey() == "IMAGE") {
-				$supplGenreId = $genre->getId();
-			}
+	// Determine genre
+	$genreDao = DAORegistry::getDAO('GenreDAO');
+	$genres = $genreDao->getByDependenceAndContextId(true, $request->getContext()->getId());
+	$supplGenreId = null;
+	while ($genre = $genres->next()) {
+		if (($mimeType == "image/png" || $mimeType == "image/jpeg") && $genre->getKey() == "IMAGE") {
+			$supplGenreId = $genre->getId();
 		}
-
-		if (!$supplGenreId) {
-			unlink($tmpfnameSuppl);
-			return;
-		}
-
-		// Replaced by Santiago, not necessary
-		//$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
-		
-		$newFileId = Services::get('file')->add(
-			$tmpfnameSuppl,
-			$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
-		);
-
-		// Set file
-		$newSupplementaryFile = $submissionFileDao->newDataObject();
-		$newSupplementaryFile->setAllData([
-			'fileId' => $newFileId,
-			'assocId' => $newSubmissionFile->getId(),
-			'assocType' => ASSOC_TYPE_SUBMISSION_FILE,
-			'fileStage' => SUBMISSION_FILE_DEPENDENT,
-			'submissionId' => $submission->getId(),
-			'genreId' => $supplGenreId,
-			'name' => array_fill_keys(array_keys($newSubmissionFile->getData('name')), basename($originalName))
-		]);
-
-		// Replaced by Santiago, not necessary
-		//Services::get('submissionFile')->add($newSupplementaryFile, $request);
-		$newSupplementaryFile = Repo::submissionFile()->add($newSupplementaryFile, $request);
-
-		unlink($tmpfnameSuppl);
 	}
+
+	if (!$supplGenreId) {
+		unlink($tmpfnameSuppl);
+		return;
+	}
+
+	// Remplace the following line with the new way to get the submission directory
+	// $submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
+	// Obtain the submission directory
+	$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submission->getId());
+
+	$newFileId = Services::get('file')->add(
+		$tmpfnameSuppl,
+		$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
+	);
+
+	// Set file
+
+	$newSupplementaryFile =  Repo::submissionFile()->newDataObject();
+	$newSupplementaryFile->setAllData([
+		'fileId' => $newFileId,
+		'assocId' => $newSubmissionFile->getId(),
+		'assocType' => ASSOC_TYPE_SUBMISSION_FILE,
+		'fileStage' => SUBMISSION_FILE_DEPENDENT,
+		'submissionId' => $submission->getId(),
+		'genreId' => $supplGenreId,
+		'name' => array_fill_keys(array_keys($newSubmissionFile->getData('name')), basename($originalName))
+	]);
+
+	Repo::submissionFile()->add($newSupplementaryFile, $request);
+	unlink($tmpfnameSuppl);
+}
+
 
 }
