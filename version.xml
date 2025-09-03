@@ -2,7 +2,7 @@
 <!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
 
 <!--
- * @file plugins/generic/docxConverter/version.xml
+ * @file plugins/generic/docxToJats/version.xml
  *
  * Copyright (c) 2014-2020 Simon Fraser University Library
  * Copyright (c) 2003-2020 John Willinsky
@@ -13,10 +13,10 @@
 -->
 
 <version>
-		<application>docxConverter</application>
-		<type>plugins.generic</type>
-		<release>1.1.1.0</release>
-		<date>2021-05-22</date>
-		<lazy-load>1</lazy-load>
-		<class>docxToJatsPlugin</class>
+	<application>docxToJats</application>
+	<type>plugins.generic</type>
+	<release>1.1.1.0</release>
+	<date>2021-05-22</date>
+	<lazy-load>1</lazy-load>
+	<class>DocxToJatsPlugin</class>
 </version>

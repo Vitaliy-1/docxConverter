@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/classes/DOCXConverterDocument.inc.php
+ * @file plugins/generic/docxToJats/classes/DocxToJatsDocument.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,11 +10,17 @@
  * @brief extends the creator class for JATS XML
  */
 
+namespace APP\plugins\generic\docxToJats\classes;
+
 require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
 use docx2jats\DOCXArchive;
+use DOMXPath;
+use APP\core\Request;
+use APP\submission\Submission;
+use DateTime;
 
-class DOCXConverterDocument extends Document {
+class DocxToJatsDocument extends Document {
 
 	protected $xpath;
 
@@ -27,7 +33,7 @@ class DOCXConverterDocument extends Document {
 		$this->stripExternalLinks();
 	}
 
-	public function setDocumentMeta(Request $reguest, Submission $submission) {
+	public function setDocumentMeta(Request $request, Submission $submission) {
 
 		// Delete all nodes if exist
 		while($this->front->hasChildNodes()) {
@@ -49,12 +55,17 @@ class DOCXConverterDocument extends Document {
 			$titleGroup->appendChild($subtitle);
 		}
 
-		if (!empty($submission->getAuthors())) {
+
+		//Ahora obtenemos el autor desde la publicacion 
+		$publication = $submission->getCurrentPublication();
+		$authors = $publication->getData('authors');  
+		
+		if (!empty($authors)) {
 			$contribGroup = $this->createElement("contrib-group");
 			$contribGroup->setAttribute("content-type", "author");
 			$articleMeta->appendChild($contribGroup);
 
-			foreach ($submission->getAuthors() as $key => $author) {
+			foreach ($authors as $key => $author) {
 				/* @var $author Author */
 				$contrib = $this->createElement("contrib");
 				$contrib->setAttribute("contrib-type", "person");
@@ -92,7 +103,7 @@ class DOCXConverterDocument extends Document {
 				$aff->appendChild($country);
 			}
 		}
-
+		
 		$history = $this->createElement("history");
 		$articleMeta->appendChild($history);
 
@@ -168,4 +179,7 @@ class DOCXConverterDocument extends Document {
 			$parentNode->parentNode->removeChild($parentNode);
 		}
 	}
+}
+if (!PKP_STRICT_MODE) {
+    class_alias('APP\plugins\generic\docxToJats\classes\DocxToJatsDocument', '\DocxToJatsDocument');
 }
