@@ -55,8 +55,6 @@ class DocxToJatsDocument extends Document {
 			$titleGroup->appendChild($subtitle);
 		}
 
-
-		//Ahora obtenemos el autor desde la publicacion 
 		$publication = $submission->getCurrentPublication();
 		$authors = $publication->getData('authors');  
 		

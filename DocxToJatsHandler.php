@@ -25,7 +25,6 @@ use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
 use APP\submission\Submission;
 use PKP\submissionFile\SubmissionFile;
-//import DAORegistry;
 use PKP\genre\GenreDAO as GenreDAO; 
 use DAORegistry;
 
@@ -39,9 +38,6 @@ class DocxToJatsHandler extends Handler {
     /** @copydoc PKPHandler::_isBackendPage */
     var $_isBackendPage = true;
 
-	/**
-	 * Constructor
-	 */
 	function __construct() {
 		parent::__construct();
 		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxToJatsPlugin');
@@ -72,30 +68,20 @@ class DocxToJatsHandler extends Handler {
 		$jatsXML = new DocxToJatsDocument($docxArchive);
 
 		$submissionId = $submissionFile->getData('submissionId');
-
-		// Replaced by Santiago
-		//$submission = Services::get('submission')->get($submissionId);
 		$submission = Repo::submission()->get($submissionId);
-
 		$jatsXML->setDocumentMeta($request, $submission);
-
-		// Add new JATS XML file
-		// Create a temporary file to store the JATS XML
 		$tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfname, $jatsXML->saveXML());
 		$genreId = $submissionFile->getData('genreId');
 
-		// Obtain the submission directory
-        //$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		// Add new JATS XML file
 		$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submissionId);
-
 		$newFileId = Services::get('file')->add(
 			$tmpfname,
 			$submissionDir . DIRECTORY_SEPARATOR . uniqid() . '.xml'
 		);
 
 		$newSubmissionFile = Repo::submissionFile()->newDataObject();
-
 		$newName = [];
 		foreach ($submissionFile->getData('name') as $localeKey => $name) {
 			$newName[$localeKey] = pathinfo($name)['filename'] . '.xml';
@@ -118,7 +104,6 @@ class DocxToJatsHandler extends Handler {
 		Repo::submissionFile()->add($newSubmissionFile, $request);
 
 		unlink($tmpfname);
-
 		
 		$mediaData = $docxArchive->getMediaFilesContent();
 		
@@ -156,18 +141,13 @@ private function _attachSupplementaryFile(Request $request, Submission $submissi
 		return;
 	}
 
-	// Remplace the following line with the new way to get the submission directory
-	// $submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
-	// Obtain the submission directory
 	$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submission->getId());
-
 	$newFileId = Services::get('file')->add(
 		$tmpfnameSuppl,
 		$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
 	);
 
 	// Set file
-
 	$newSupplementaryFile =  Repo::submissionFile()->newDataObject();
 	$newSupplementaryFile->setAllData([
 		'fileId' => $newFileId,

@@ -68,14 +68,10 @@ class DocxToJatsPlugin extends GenericPlugin {
 
 public function callbackLoadHandler($hookName, $args) {
     $page = $args[0]; 
-    $op = $args[1];   
-    //error_log('$_SERVER["REQUEST_URI"]: ' . $_SERVER["REQUEST_URI"]);
-    //error_log('$_GET: ' . print_r($_GET, true));
+    $op = $args[1];
 
     if ($page === 'docxParser' && $op === 'parse') {
-        // Ruta absoluta al archivo del handler
         require_once($this->getPluginPath() . '/DocxToJatsHandler.php');
-        // Esta línea es la clave para evitar el 404
         define('HANDLER_CLASS', '\APP\plugins\generic\docxToJats\DocxToJatsHandler');
         return true;
     }
@@ -101,15 +97,11 @@ public function callbackLoadHandler($hookName, $args) {
 			if (is_array($data) && (isset($data['submissionFile']))) {
 				$submissionFile = $data['submissionFile'];
 				$fileExtension = strtolower($submissionFile->getData('mimetype'));
-
+				
 				// Ensure that the conversion is run on the appropriate workflow stage
 				$stageId = (int) $request->getUserVar('stageId');
 				$submissionId = $submissionFile->getData('submissionId');
-				
-				/* $submission = Services::get('submission')->get($submissionId);**/ /** @var $submission Submission */
-				/* Remplazado por Santiago */
 				$submission = Repo::submission()->get($submissionId);
-
 				$submissionStageId = $submission->getData('stageId');
 				$roles = $request->getUser()->getRoles($request->getContext()->getId());
 
@@ -125,10 +117,6 @@ public function callbackLoadHandler($hookName, $args) {
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
 					) {
-
-					// Add the conversion link
-					// https://exampel.org/publicknowledg/issue/view/1 
-					// ---------------------------------- 
 
 					$path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
 						array(
