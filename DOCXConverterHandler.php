@@ -10,7 +10,7 @@
  * @brief handler for the grid's conversion
  */
 
-namespace APP\plugins\generic\DOCXConverterHandler;
+namespace APP\plugins\generic\docxConverter;
 
 use APP\core\Services;
 use APP\core\Request;
@@ -40,7 +40,7 @@ class DOCXConverterHandler extends Handler {
 
 	function __construct() {
 		parent::__construct();
-		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxToJatsPlugin');
+		$this->_plugin = PluginRegistry::getPlugin('generic', 'docxToJats');
 		$this->addRoleAssignment(
 			array(Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT),
 			array('parse')

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/DocxToJatsPlugin.php
+ * @file plugins/generic/docxConverter/DocxConverterPlugin.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -20,7 +20,7 @@
  use PKP\plugins\Hook;
  use APP\facades\Repo;
 
-class DocxToJatsPlugin extends GenericPlugin {
+class DocxConverterPlugin extends GenericPlugin {
 	/**
 	 * @copydoc Plugin::getDisplayName()
 	 */
@@ -66,18 +66,17 @@ class DocxToJatsPlugin extends GenericPlugin {
 		return $request->getBaseUrl() . '/' . $this->getPluginPath();
 	}
 
-public function callbackLoadHandler($hookName, $args) {
-    $page = $args[0]; 
-    $op = $args[1];
+	public function callbackLoadHandler($hookName, $args) {
+		$page = $args[0]; 
+		$op = $args[1];
 
-    if ($page === 'docxParser' && $op === 'parse') {
-        require_once($this->getPluginPath() . '/DOCXConverterHandler.php');
-        define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\DOCXConverterHandler');
-        return true;
-    }
-    return false;
-}
-
+		if ($page === 'docxParser' && $op === 'parse') {
+			require_once($this->getPluginPath() . '/DOCXConverterHandler.php');
+			define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\DOCXConverterHandler');
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Adds additional links to submission files grid row
@@ -161,5 +160,5 @@ public function callbackLoadHandler($hookName, $args) {
 }
 
 if (!PKP_STRICT_MODE) {
-    class_alias('APP\plugins\generic\docxConverter\DocxToJatsPlugin', '\DocxToJatsPlugin');
+    class_alias('APP\plugins\generic\docxConverter\DocxConverterPlugin', '\DocxConverterPlugin');
 }
