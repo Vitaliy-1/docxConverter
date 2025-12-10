@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxToJats/DocxToJatsHandler.inc.php
+ * @file plugins/generic/docxConverter/DOCXConverterHandler.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,7 @@
  * @brief handler for the grid's conversion
  */
 
-namespace APP\plugins\generic\docxToJats;
+namespace APP\plugins\generic\DOCXConverterHandler;
 
 use APP\core\Services;
 use APP\core\Request;
@@ -19,7 +19,7 @@ use APP\handler\Handler;
 use APP\facades\Repo;
 use PKP\plugins\PluginRegistry;
 
-use APP\plugins\generic\docxToJats\classes\DocxToJatsDocument;
+use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
@@ -28,12 +28,12 @@ use PKP\submissionFile\SubmissionFile;
 use PKP\genre\GenreDAO as GenreDAO; 
 use DAORegistry;
 
-require_once(__DIR__ . '/classes/DocxToJatsDocument.php');
+require_once(__DIR__ . '/classes/DOCXConverterDocument.php');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
 use docx2jats\DOCXArchive;
 
 
-class DocxToJatsHandler extends Handler {
+class DOCXConverterHandler extends Handler {
 
     /** @copydoc PKPHandler::_isBackendPage */
     var $_isBackendPage = true;
@@ -65,7 +65,7 @@ class DocxToJatsHandler extends Handler {
 		
 
 		$docxArchive = new DOCXArchive($filePath);
-		$jatsXML = new DocxToJatsDocument($docxArchive);
+		$jatsXML = new DOCXConverterDocument($docxArchive);
 
 		$submissionId = $submissionFile->getData('submissionId');
 		$submission = Repo::submission()->get($submissionId);
