@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxToJats/DocxToJatsHandler.inc.php
+ * @file plugins/generic/docxConverter/DOCXConverterHandler.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,7 @@
  * @brief handler for the grid's conversion
  */
 
-namespace APP\plugins\generic\docxToJats;
+namespace APP\plugins\generic\docxConverter;
 
 use APP\core\Services;
 use APP\core\Request;
@@ -19,32 +19,28 @@ use APP\handler\Handler;
 use APP\facades\Repo;
 use PKP\plugins\PluginRegistry;
 
-use APP\plugins\generic\docxToJats\classes\DocxToJatsDocument;
+use APP\plugins\generic\docxConverter\classes\DOCXConverterDocument;
 use PKP\file\PrivateFileManager;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
 use APP\submission\Submission;
 use PKP\submissionFile\SubmissionFile;
-//import DAORegistry;
 use PKP\genre\GenreDAO as GenreDAO; 
 use DAORegistry;
 
-require_once(__DIR__ . '/classes/DocxToJatsDocument.php');
+require_once(__DIR__ . '/classes/DOCXConverterDocument.php');
 require_once __DIR__ . "/docxToJats/vendor/autoload.php";
 use docx2jats\DOCXArchive;
 
 
-class DocxToJatsHandler extends Handler {
+class DOCXConverterHandler extends Handler {
 
     /** @copydoc PKPHandler::_isBackendPage */
     var $_isBackendPage = true;
 
-	/**
-	 * Constructor
-	 */
 	function __construct() {
 		parent::__construct();
-		$this->_plugin = PluginRegistry::getPlugin('generic', 'DocxToJatsPlugin');
+		$this->_plugin = PluginRegistry::getPlugin('generic', 'docxToJats');
 		$this->addRoleAssignment(
 			array(Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT),
 			array('parse')
@@ -69,33 +65,23 @@ class DocxToJatsHandler extends Handler {
 		
 
 		$docxArchive = new DOCXArchive($filePath);
-		$jatsXML = new DocxToJatsDocument($docxArchive);
+		$jatsXML = new DOCXConverterDocument($docxArchive);
 
 		$submissionId = $submissionFile->getData('submissionId');
-
-		// Replaced by Santiago
-		//$submission = Services::get('submission')->get($submissionId);
 		$submission = Repo::submission()->get($submissionId);
-
 		$jatsXML->setDocumentMeta($request, $submission);
-
-		// Add new JATS XML file
-		// Create a temporary file to store the JATS XML
 		$tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
 		file_put_contents($tmpfname, $jatsXML->saveXML());
 		$genreId = $submissionFile->getData('genreId');
 
-		// Obtain the submission directory
-        //$submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submissionId);
+		// Add new JATS XML file
 		$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submissionId);
-
 		$newFileId = Services::get('file')->add(
 			$tmpfname,
 			$submissionDir . DIRECTORY_SEPARATOR . uniqid() . '.xml'
 		);
 
 		$newSubmissionFile = Repo::submissionFile()->newDataObject();
-
 		$newName = [];
 		foreach ($submissionFile->getData('name') as $localeKey => $name) {
 			$newName[$localeKey] = pathinfo($name)['filename'] . '.xml';
@@ -118,7 +104,6 @@ class DocxToJatsHandler extends Handler {
 		Repo::submissionFile()->add($newSubmissionFile, $request);
 
 		unlink($tmpfname);
-
 		
 		$mediaData = $docxArchive->getMediaFilesContent();
 		
@@ -156,18 +141,13 @@ private function _attachSupplementaryFile(Request $request, Submission $submissi
 		return;
 	}
 
-	// Remplace the following line with the new way to get the submission directory
-	// $submissionDir = Services::get('submissionFile')->getSubmissionDir($submission->getData('contextId'), $submission->getId());
-	// Obtain the submission directory
 	$submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submission->getId());
-
 	$newFileId = Services::get('file')->add(
 		$tmpfnameSuppl,
 		$submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
 	);
 
 	// Set file
-
 	$newSupplementaryFile =  Repo::submissionFile()->newDataObject();
 	$newSupplementaryFile->setAllData([
 		'fileId' => $newFileId,
