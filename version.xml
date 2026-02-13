@@ -18,5 +18,5 @@
 	<release>1.1.1.0</release>
 	<date>2021-05-22</date>
 	<lazy-load>1</lazy-load>
-	<class>DocxConverterPlugin</class>
+	<class>DocxToJatsPlugin</class>
 </version>
