@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/DocxConverterPlugin.php
+ * @file plugins/generic/docxConverter/DocxToJatsPlugin.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -12,6 +12,8 @@
 
  namespace APP\plugins\generic\docxConverter;
 
+ use APP\plugins\generic\docxConverter\classes\migration\upgrade\updateDocxConverterPluginName;
+
  use PKP\plugins\GenericPlugin;
  use PKP\linkAction\LinkAction;
  use PKP\linkAction\request\AjaxModal;
@@ -20,7 +22,7 @@
  use PKP\plugins\Hook;
  use APP\facades\Repo;
 
-class DocxConverterPlugin extends GenericPlugin {
+class DocxToJatsPlugin extends GenericPlugin {
 	/**
 	 * @copydoc Plugin::getDisplayName()
 	 */
@@ -157,8 +159,16 @@ class DocxConverterPlugin extends GenericPlugin {
         ];
     }
 
+	/**
+    * @copydoc Plugin::getInstallMigration()
+    */
+    public function getInstallMigration(): updateDocxConverterPluginName
+    {
+        return new updateDocxConverterPluginName();
+    }
+
 }
 
 if (!PKP_STRICT_MODE) {
-    class_alias('APP\plugins\generic\docxConverter\DocxConverterPlugin', '\DocxConverterPlugin');
+    class_alias('APP\plugins\generic\docxConverter\DocxToJatsPlugin', '\DocxToJatsPlugin');
 }
