@@ -27,6 +27,50 @@ class updateDocxConverterPluginName extends Migration
      */
     public function up(): void
     {
+        $product = 'docxConverter';
+        $oldValue = 'DocxToJatsPlugin';
+        $newValue = 'DocxConverterPlugin';
+
+        /** plugin_settings */
+
+        $upgradeRequired = DB::table('plugin_settings')
+            ->where(DB::raw('LOWER(plugin_name)'), '=', strtolower($oldValue))
+            ->count();
+
+        if ($upgradeRequired > 0) {
+            // Get all plugin settings and clear duplicates
+            $records = DB::table('plugin_settings')
+                ->where(DB::raw('LOWER(plugin_name)'), strtolower($oldValue))
+                ->orderBy(DB::raw('LOWER(plugin_name)'), 'desc')
+                ->get()
+                ->keyBy('context_id');
+
+            // Delete the old settings
+            DB::table('plugin_settings')
+                ->where(DB::raw('LOWER(plugin_name)'), strtolower($oldValue))
+                ->delete();
+
+            // Insert the settings with the correct plugin name
+            foreach ($records as $record) {
+                DB::table('plugin_settings')->insert(
+                    [
+                        'plugin_name' => strtolower($newValue),
+                        'context_id' => $record->context_id,
+                        'setting_name' => $record->setting_name,
+                        'setting_value' => $record->setting_value,
+                        'setting_type' => $record->setting_type
+                    ]
+                );
+            }
+        }
+
+        /** versions */
+
+        DB::table('versions')
+            ->where(DB::raw('LOWER(product_type)'), 'plugins.generic')
+            ->where(DB::raw('LOWER(product)'), strtolower($product))
+            ->where(DB::raw('LOWER(product_class_name)'), strtolower($oldValue))
+            ->update(['product_class_name' => $newValue]);
     }
 
     /**
