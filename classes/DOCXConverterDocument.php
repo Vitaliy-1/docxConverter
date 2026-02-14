@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxToJats/classes/DocxToJatsDocument.inc.php
+ * @file plugins/generic/docxConverter/classes/DOCXConverterDocument.inc.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,7 @@
  * @brief extends the creator class for JATS XML
  */
 
-namespace APP\plugins\generic\docxToJats\classes;
+namespace APP\plugins\generic\docxConverter\classes;
 
 require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
 use docx2jats\jats\Document;
@@ -20,7 +20,7 @@ use APP\core\Request;
 use APP\submission\Submission;
 use DateTime;
 
-class DocxToJatsDocument extends Document {
+class DOCXConverterDocument extends Document {
 
 	protected $xpath;
 
@@ -179,5 +179,5 @@ class DocxToJatsDocument extends Document {
 	}
 }
 if (!PKP_STRICT_MODE) {
-    class_alias('APP\plugins\generic\docxToJats\classes\DocxToJatsDocument', '\DocxToJatsDocument');
+    class_alias('APP\plugins\generic\docxConverter\classes\DOCXConverterDocument', '\DOCXConverterDocument');
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/docxToJats/DocxToJats.php
+ * @file plugins/generic/docxConverter/DocxToJatsPlugin.php
  *
  * Copyright (c) 2014-2019 Simon Fraser University Library
  * Copyright (c) 2003-2019 John Willinsky
@@ -10,7 +10,9 @@
  * @brief main class of the DOCX to JATS XML Converter Plugin
  */
 
- namespace APP\plugins\generic\docxToJats;
+ namespace APP\plugins\generic\docxConverter;
+
+ use APP\plugins\generic\docxConverter\classes\migration\upgrade\updateDocxConverterPluginName;
 
  use PKP\plugins\GenericPlugin;
  use PKP\linkAction\LinkAction;
@@ -66,18 +68,17 @@ class DocxToJatsPlugin extends GenericPlugin {
 		return $request->getBaseUrl() . '/' . $this->getPluginPath();
 	}
 
-public function callbackLoadHandler($hookName, $args) {
-    $page = $args[0]; 
-    $op = $args[1];
+	public function callbackLoadHandler($hookName, $args) {
+		$page = $args[0]; 
+		$op = $args[1];
 
-    if ($page === 'docxParser' && $op === 'parse') {
-        require_once($this->getPluginPath() . '/DocxToJatsHandler.php');
-        define('HANDLER_CLASS', '\APP\plugins\generic\docxToJats\DocxToJatsHandler');
-        return true;
-    }
-    return false;
-}
-
+		if ($page === 'docxParser' && $op === 'parse') {
+			require_once($this->getPluginPath() . '/DOCXConverterHandler.php');
+			define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\DOCXConverterHandler');
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Adds additional links to submission files grid row
@@ -113,7 +114,7 @@ public function callbackLoadHandler($hookName, $args) {
 					}
 				}
 				if (in_array(strtolower($fileExtension), static::getSupportedMimetypes()) && // show only for files with docx extension
-					$accessAllowed && // only for those that have access according to the docxToJatsHandler rules
+					$accessAllowed && // only for those that have access according to the DOCXConverterHandler rules
 					in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
 					in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
 					) {
@@ -158,8 +159,16 @@ public function callbackLoadHandler($hookName, $args) {
         ];
     }
 
+	/**
+    * @copydoc Plugin::getInstallMigration()
+    */
+    public function getInstallMigration(): updateDocxConverterPluginName
+    {
+        return new updateDocxConverterPluginName();
+    }
+
 }
 
 if (!PKP_STRICT_MODE) {
-    class_alias('APP\plugins\generic\docxToJats\DocxToJatsPlugin', '\DocxToJatsPlugin');
+    class_alias('APP\plugins\generic\docxConverter\DocxToJatsPlugin', '\DocxToJatsPlugin');
 }
