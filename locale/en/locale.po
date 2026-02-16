@@ -11,13 +11,13 @@ msgstr ""
 "PO-Revision-Date: 2021-05-22T13:48:36+00:00\n"
 "Language: \n"
 
-msgid "plugins.generic.docxToJats.displayName"
+msgid "plugins.generic.docxConverter.displayName"
 msgstr "DOCX to JATS XML Converter Plugin"
 
-msgid "plugins.generic.docxToJats.description"
+msgid "plugins.generic.docxConverter.description"
 msgstr "Transforms journal articles from DOCX (OOXML) to JATS XML format."
 
-msgid "plugins.generic.docxToJats.button.parseDocx"
+msgid "plugins.generic.docxConverter.button.parseDocx"
 msgstr "Convert to JATS XML"
 
 msgid "grid.action.parse"
