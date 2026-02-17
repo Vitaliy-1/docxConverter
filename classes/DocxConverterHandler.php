@@ -43,17 +43,17 @@ class DocxConverterHandler
     }
 
     /**
-     * This allows to add a route on the fly without defining an api controller.
+     * This allows adding a route on the fly without defining an api controller.
      * Hook: APIHandler::endpoints::submissions
-     * e.g. api/v1/submissions/docxConverter/{submission_file_id}/__action__
+     * e.g. api/v1/submissions/docxConverter/{submission_file_id}/convert
      */
     public function addRoute(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool
     {
         $apiHandler->addRoute(
             'GET',
-            "docxConverter/{submission_file_id}/convert",
+            DocxConverterPlugin::PLUGIN_NAME . "/{submission_file_id}/convert",
             fn(IlluminateRequest $request): JsonResponse => $this->convert($request),
-            'docxConverter.convertDocx',
+            DocxConverterPlugin::PLUGIN_NAME . '.convert',
             DocxConverterPlugin::AUTHORIZED_ROLES
         );
 
@@ -85,14 +85,14 @@ class DocxConverterHandler
         $submissionId = $submissionFile->getData('submissionId');
         $submission = Repo::submission()->get($submissionId);
         $jatsXML->setDocumentMeta($submission);
-        $tmpfname = tempnam(sys_get_temp_dir(), 'docxConverter');
-        file_put_contents($tmpfname, $jatsXML->saveXML());
+        $tmpName = tempnam(sys_get_temp_dir(), DocxConverterPlugin::PLUGIN_NAME);
+        file_put_contents($tmpName, $jatsXML->saveXML());
         $genreId = $submissionFile->getData('genreId');
 
         // Add new JATS XML file
         $submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submissionId);
         $newFileId = Services::get('file')->add(
-            $tmpfname,
+            $tmpName,
             $submissionDir . DIRECTORY_SEPARATOR . uniqid() . '.xml'
         );
 
@@ -118,7 +118,7 @@ class DocxConverterHandler
 
         Repo::submissionFile()->add($newSubmissionFile, $request);
 
-        unlink($tmpfname);
+        unlink($tmpName);
 
         $mediaData = $docxArchive->getMediaFilesContent();
         if (!empty($mediaData)) {
@@ -142,28 +142,28 @@ class DocxConverterHandler
         Request            $request, Submission $submission, SubmissionFile $newSubmissionFile,
         PrivateFileManager $fileManager, string $originalName, string $singleData): void
     {
-        $tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
-        file_put_contents($tmpfnameSuppl, $singleData);
-        $mimeType = mime_content_type($tmpfnameSuppl);
+        $tmpNameSuppl = tempnam(sys_get_temp_dir(), DocxConverterPlugin::PLUGIN_NAME);
+        file_put_contents($tmpNameSuppl, $singleData);
+        $mimeType = mime_content_type($tmpNameSuppl);
 
         // Determine genre
         $genreDao = DAORegistry::getDAO('GenreDAO');
         $genres = $genreDao->getByDependenceAndContextId(true, $request->getContext()->getId());
         $supplGenreId = null;
         while ($genre = $genres->next()) {
-            if (($mimeType == "image/png" || $mimeType == "image/jpeg") && $genre->getKey() == "IMAGE") {
+            if (($mimeType === 'image/png' || $mimeType === 'image/jpeg') && $genre->getKey() === 'IMAGE') {
                 $supplGenreId = $genre->getId();
             }
         }
 
         if (!$supplGenreId) {
-            unlink($tmpfnameSuppl);
+            unlink($tmpNameSuppl);
             return;
         }
 
         $submissionDir = Repo::submissionFile()->getSubmissionDir($submission->getData('contextId'), $submission->getId());
         $newFileId = Services::get('file')->add(
-            $tmpfnameSuppl,
+            $tmpNameSuppl,
             $submissionDir . '/' . uniqid() . '.' . $fileManager->parseFileExtension($originalName)
         );
 
@@ -181,6 +181,6 @@ class DocxConverterHandler
 
         Repo::submissionFile()->add($newSupplementaryFile, $request);
 
-        unlink($tmpfnameSuppl);
+        unlink($tmpNameSuppl);
     }
 }

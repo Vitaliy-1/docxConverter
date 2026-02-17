@@ -19,7 +19,7 @@ namespace APP\plugins\generic\docxConverter;
 use APP\core\Application;
 use APP\core\Request;
 use APP\plugins\generic\docxConverter\classes\DocxConverterHandler;
-use APP\plugins\generic\docxConverter\classes\migration\upgrade\updateDocxConverterPluginName;
+use APP\plugins\generic\docxConverter\classes\migration\upgrade\UpdateDocxConverterPluginName;
 use APP\template\TemplateManager;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
@@ -27,6 +27,8 @@ use PKP\security\Role;
 
 class DocxConverterPlugin extends GenericPlugin
 {
+    public const PLUGIN_NAME = 'docxConverter';
+
     /**
      * Authorized roles.
      */
@@ -97,9 +99,9 @@ class DocxConverterPlugin extends GenericPlugin
     /**
      * @copydoc Plugin::getInstallMigration()
      */
-    public function getInstallMigration(): updateDocxConverterPluginName
+    public function getInstallMigration(): UpdateDocxConverterPluginName
     {
-        return new updateDocxConverterPluginName();
+        return new UpdateDocxConverterPluginName();
     }
 }
 

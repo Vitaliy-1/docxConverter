@@ -1,17 +1,17 @@
 <?php
 
 /**
- * @file plugins/generic/docxConverter/classes/migration/upgrade/updateDocxConverterPluginName.php
+ * @file plugins/generic/docxConverter/classes/migration/upgrade/UpdateDocxConverterPluginName.php
  *
  * Copyright (c) 2026 TIB Hannover
  * Copyright (c) 2026 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
- * @class updateDocxConverterPluginName
+ * @class UpdateDocxConverterPluginName
  *
  * @ingroup plugins_generic_docxconverter
  *
- * @brief Fix the plugin name in plugin settings for the Portico export plugin.
+ * @brief Fix the plugin name in plugin settings for this plugin.
  */
 
 namespace APP\plugins\generic\docxConverter\classes\migration\upgrade;
@@ -20,7 +20,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use PKP\install\DowngradeNotSupportedException;
 
-class updateDocxConverterPluginName extends Migration
+class UpdateDocxConverterPluginName extends Migration
 {
     /**
      * Run the migration.

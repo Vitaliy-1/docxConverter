@@ -21,6 +21,7 @@ use APP\submission\Submission;
 use DateTime;
 use docx2jats\DOCXArchive;
 use docx2jats\jats\Document;
+use DOMNode;
 use DOMXPath;
 
 class DocxConverterDocument extends Document
@@ -173,7 +174,7 @@ class DocxConverterDocument extends Document
     /**
      * Recursively strip all formatted text from ext-link element.
      */
-    private function recursiveStripExternalLinks($parentNode): void
+    private function recursiveStripExternalLinks(DOMNode $parentNode): void
     {
         if (in_array($parentNode->tagName, array("italic", "bold", 'sup', 'sub'))) {
             $parentNodeContent = $this->xpath->query("descendant::*|text()", $parentNode);
