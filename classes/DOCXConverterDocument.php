@@ -12,8 +12,7 @@
 
 namespace APP\plugins\generic\docxConverter\classes;
 
-require_once __DIR__ . "/../docxToJats/vendor/autoload.php";
-
+use APP\author\Author;
 use APP\core\Request;
 use APP\submission\Submission;
 use DateTime;
@@ -23,7 +22,7 @@ use DOMXPath;
 
 class DOCXConverterDocument extends Document
 {
-    protected $xpath;
+    protected DOMXPath $xpath;
 
     public function __construct(DOCXArchive $docxArchive)
     {
@@ -37,7 +36,7 @@ class DOCXConverterDocument extends Document
     /**
      * Sets the metadata of the document based on the provided submission and request.
      */
-    public function setDocumentMeta(Request $request, Submission $submission)
+    public function setDocumentMeta(Request $request, Submission $submission): void
     {
         // Delete all nodes if exist
         while($this->front->hasChildNodes()) {
@@ -143,7 +142,7 @@ class DOCXConverterDocument extends Document
     /**
      * Removes all paragraph elements from table cells while preserving their content.
      */
-    private function removeTableParagraphs()
+    private function removeTableParagraphs(): void
     {
         $cellParagraphs = $this->xpath->query("//td/p|//th/p");
         foreach ($cellParagraphs as $cellParagraph) {
@@ -159,27 +158,27 @@ class DOCXConverterDocument extends Document
     /**
      * Strip ext-link tag from formatted text for compliance with Texture Plugin
      */
-    private function stripExternalLinks()
+    private function stripExternalLinks(): void
     {
         $bodyExtLinks = $this->xpath->query("//ext-link");
         foreach ($bodyExtLinks as $bodyExtLink) {
             $parentNode = $bodyExtLink->parentNode;
-            $this->_recursiveStripExternalLinks($parentNode);
+            $this->recursiveStripExternalLinks($parentNode);
         }
     }
 
     /**
      * Recursively strip all formatted text from an ext-link element.
      */
-    private function _recursiveStripExternalLinks($parentNode)
+    private function recursiveStripExternalLinks($parentNode): void
     {
-        if (in_array($parentNode->tagName, array("italic", "bold", 'sup', 'sub'))) {
+        if (in_array($parentNode->tagName, ["italic", "bold", 'sup', 'sub'])) {
             $parentNodeContent = $this->xpath->query("descendant::*|text()", $parentNode);
             foreach ($parentNodeContent as $child) {
                 $parentNode->parentNode->insertBefore($child, $parentNode);
             }
 
-            $this->_recursiveStripExternalLinks($parentNode->parentNode);
+            $this->recursiveStripExternalLinks($parentNode->parentNode);
 
             $parentNode->parentNode->removeChild($parentNode);
         }

@@ -12,6 +12,7 @@
 
 namespace APP\plugins\generic\docxConverter;
 
+use APP\core\Application;
 use APP\core\Request;
 use APP\core\Services;
 use APP\facades\Repo;
@@ -22,15 +23,9 @@ use DAORegistry;
 use docx2jats\DOCXArchive;
 use PKP\core\JSONMessage;
 use PKP\file\PrivateFileManager;
-use PKP\genre\GenreDAO as GenreDAO;
-use PKP\plugins\PluginRegistry;
 use PKP\security\authorization\WorkflowStageAccessPolicy;
 use PKP\security\Role;
 use PKP\submissionFile\SubmissionFile;
-
-require_once(__DIR__ . '/classes/DOCXConverterDocument.php');
-require_once __DIR__ . "/docxToJats/vendor/autoload.php";
-
 
 class DOCXConverterHandler extends Handler
 {
@@ -42,17 +37,16 @@ class DOCXConverterHandler extends Handler
     function __construct()
     {
         parent::__construct();
-        $this->_plugin = PluginRegistry::getPlugin('generic', 'docxToJats');
         $this->addRoleAssignment(
-            array(Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT),
-            array('parse')
+            [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
+            ['parse']
         );
     }
 
     /**
      * @copydoc PKPHandler::authorize()
      */
-    function authorize($request, &$args, $roleAssignments)
+    function authorize($request, &$args, $roleAssignments): bool
     {
         $this->addPolicy(new WorkflowStageAccessPolicy($request, $args, $roleAssignments, 'submissionId', (int)$request->getUserVar('stageId')));
         return parent::authorize($request, $args, $roleAssignments);
@@ -61,7 +55,7 @@ class DOCXConverterHandler extends Handler
     /**
      * Parses a submission file, converts it to JATS XML, attaches supplementary files, and creates a new submission file record.
      */
-    public function parse($args, $request)
+    public function parse(array $args, Request $request): JSONMessage
     {
         $submissionFileId = (int)$request->getUserVar('submissionFileId');
         $submissionFile = Repo::submissionFile()->get($submissionFileId);
@@ -114,21 +108,21 @@ class DOCXConverterHandler extends Handler
 
         if (!empty($mediaData)) {
             foreach ($mediaData as $originalName => $singleData) {
-                $this->_attachSupplementaryFile($request, $submission, $newSubmissionFile, $fileManager, $originalName, $singleData);
+                $this->attachSupplementaryFile($request, $submission, $newSubmissionFile, $fileManager, $originalName, $singleData);
             }
         }
 
-        return new JSONMessage(true, array(
+        return new JSONMessage(true, [
             'submissionId' => $submissionId,
             'fileId' => $newSubmissionFile->getData('fileId'),
-            'fileStage' => $newSubmissionFile->getData('fileStage'),
-        ));
+            'fileStage' => $newSubmissionFile->getData('fileStage')
+        ]);
     }
 
     /**
      * Attaches a supplementary file to an existing submission by processing the provided file data.
      */
-    private function _attachSupplementaryFile(Request $request, Submission $submission, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData)
+    private function attachSupplementaryFile(Request $request, Submission $submission, SubmissionFile $newSubmissionFile, PrivateFileManager $fileManager, string $originalName, string $singleData): void
     {
         $tmpfnameSuppl = tempnam(sys_get_temp_dir(), 'docxConverter');
         file_put_contents($tmpfnameSuppl, $singleData);
@@ -160,8 +154,8 @@ class DOCXConverterHandler extends Handler
         $newSupplementaryFile->setAllData([
             'fileId' => $newFileId,
             'assocId' => $newSubmissionFile->getId(),
-            'assocType' => ASSOC_TYPE_SUBMISSION_FILE,
-            'fileStage' => SUBMISSION_FILE_DEPENDENT,
+            'assocType' => Application::ASSOC_TYPE_SUBMISSION_FILE,
+            'fileStage' => SubmissionFile::SUBMISSION_FILE_DEPENDENT,
             'submissionId' => $submission->getId(),
             'genreId' => $supplGenreId,
             'name' => array_fill_keys(array_keys($newSubmissionFile->getData('name')), basename($originalName))

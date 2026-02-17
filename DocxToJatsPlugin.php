@@ -12,20 +12,21 @@
 
 namespace APP\plugins\generic\docxConverter;
 
+use APP\core\Application;
 use APP\facades\Repo;
-use APP\plugins\generic\docxConverter\classes\migration\upgrade\updateDocxConverterPluginName;
+use PKP\controllers\grid\GridRow;
 use PKP\linkAction\LinkAction;
-use PKP\linkAction\request\AjaxModal;
 use PKP\linkAction\request\PostAndRedirectAction;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\security\Role;
 
 class DocxToJatsPlugin extends GenericPlugin
 {
     /**
      * @copydoc Plugin::getDisplayName()
      */
-    function getDisplayName()
+    function getDisplayName(): string
     {
         return __('plugins.generic.docxToJats.displayName');
     }
@@ -33,7 +34,7 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * @copydoc Plugin::getDescription()
      */
-    function getDescription()
+    function getDescription(): string
     {
         return __('plugins.generic.docxToJats.description');
     }
@@ -41,11 +42,11 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * @copydoc Plugin::register()
      */
-    function register($category, $path, $mainContextId = null)
+    function register($category, $path, $mainContextId = null): bool
     {
         if (parent::register($category, $path, $mainContextId)) {
             if ($this->getEnabled()) {
-                // Register callbacks.
+                require_once __DIR__ . "/docxToJats/vendor/autoload.php";
                 Hook::add('TemplateManager::fetch', [$this, 'templateFetchCallback']);
                 Hook::add('LoadHandler', [$this, 'callbackLoadHandler']);
                 $this->_registerTemplateResource();
@@ -58,7 +59,7 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * Get plugin URL.
      */
-    function getPluginUrl($request)
+    function getPluginUrl($request): string
     {
         return $request->getBaseUrl() . '/' . $this->getPluginPath();
     }
@@ -66,13 +67,12 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * Handles the callback for loading specific page and operation route handlers.
      */
-    public function callbackLoadHandler($hookName, $args)
+    public function callbackLoadHandler($hookName, $args): bool
     {
         $page = $args[0];
         $op = $args[1];
 
         if ($page === 'docxParser' && $op === 'parse') {
-            require_once($this->getPluginPath() . '/DOCXConverterHandler.php');
             define('HANDLER_CLASS', '\APP\plugins\generic\docxConverter\DOCXConverterHandler');
             return true;
         }
@@ -82,7 +82,7 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * Adds additional links to submission files grid row.
      */
-    public function templateFetchCallback($hookName, $params)
+    public function templateFetchCallback($hookName, $params): void
     {
         $request = $this->getRequest();
         $dispatcher = $request->getDispatcher();
@@ -106,7 +106,7 @@ class DocxToJatsPlugin extends GenericPlugin
 
                 $accessAllowed = false;
                 foreach ($roles as $role) {
-                    if (in_array($role->getId(), [ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_ASSISTANT])) {
+                    if (in_array($role->getId(), [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT])) {
                         $accessAllowed = true;
                         break;
                     }
@@ -116,14 +116,15 @@ class DocxToJatsPlugin extends GenericPlugin
                     in_array($stageId, $this->getAllowedWorkflowStages()) && // only for stage ids copyediting or higher
                     in_array($submissionStageId, $this->getAllowedWorkflowStages()) // only if submission has correspondent stage id
                 ) {
-                    $path = $dispatcher->url($request, ROUTE_PAGE, null, 'docxParser', 'parse', null,
-                        array(
+                    $path = $dispatcher->url($request, Application::ROUTE_PAGE, null, 'docxParser', 'parse', null,
+                        [
                             'submissionId' => $submissionId,
                             'submissionFileId' => $submissionFile->getId(),
                             'stageId' => $stageId
-                        ));
+                        ]
+                    );
 
-                    $pathRedirect = $dispatcher->url($request, ROUTE_PAGE, null, 'workflow', 'access', $submissionId);
+                    $pathRedirect = $dispatcher->url($request, Application::ROUTE_PAGE, null, 'workflow', 'access', $submissionId);
 
                     $linkAction = new LinkAction(
                         'parse',
@@ -139,7 +140,7 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * Retrieves the list of allowed workflow stages.
      */
-    public function getAllowedWorkflowStages()
+    public function getAllowedWorkflowStages(): array
     {
         return [
             WORKFLOW_STAGE_ID_EDITING,
@@ -150,7 +151,7 @@ class DocxToJatsPlugin extends GenericPlugin
     /**
      * MIME type supported by the plugin for conversion
      */
-    public static function getSupportedMimetypes()
+    public static function getSupportedMimetypes(): array
     {
         return [
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -158,15 +159,6 @@ class DocxToJatsPlugin extends GenericPlugin
             'application/vnd.openxmlformats-officedocument.wordprocessingml.documentapplication/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
     }
-
-    /**
-     * @copydoc Plugin::getInstallMigration()
-     */
-    public function getInstallMigration(): updateDocxConverterPluginName
-    {
-        return new updateDocxConverterPluginName();
-    }
-
 }
 
 // For backwards compatibility -- expect this to be removed approx. OJS/OMP/OPS 3.6
