@@ -3,13 +3,13 @@
 /**
  * @file plugins/generic/docxConverter/index.php
  *
- * Copyright (c) 2014-2019 Simon Fraser University Library
- * Copyright (c) 2003-2019 John Willinsky
+ * Copyright (c) 2014-2026 Simon Fraser University Library
+ * Copyright (c) 2003-2026 John Willinsky
  * Distributed under the GNU GPL v2.
  *
  * @brief wrapper for driver plugin
  */
 
-require_once('DocxToJatsPlugin.inc.php');
+require_once('DocxToJatsPlugin.php');
 
 return new DocxToJatsPlugin();
