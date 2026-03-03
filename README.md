@@ -6,7 +6,12 @@ DOCX is an archive that complies with Open Office XML format. It is commonly use
 This plugin is aimed at helping publishers that are using JATS XML as a pivotal format for their publication workflow. The idea behind the converter is to create a basic structure of the document from given DOCX file and then prepare the manuscript for the production by JATS XML online editor, like the Texture plugin. The converter is written in pure PHP and doesn't require any additional external extensions for basic functionality.
 
 ## Installation
-The plugin can be installed in two ways, 1) by downloading the latest stable release or 2) by cloning the master branch. The latter can be accomplished with Git by cloning the repo with submodules into `plugins/generic` directory starting from the web root of OJS instance. It's as simple as: `git clone --recurse-submodules https://github.com/Vitaliy-1/docxConverter.git`.
+The plugin can be installed in two ways, 1) by downloading the latest stable release or 2) by cloning the master branch. The latter can be accomplished with Git by cloning the repo with submodules into `plugins/generic` directory starting from the web root of OJS instance. Then run: 
+```
+git clone --recurse-submodules https://github.com/Vitaliy-1/docxConverter.git
+npm install
+npm run build
+```
 
 After installation plugin should be activated in the plugins menu: `Settings -> Website -> Plugins -> check enable near DOCX to JATS XML Converter Plugin`. The button `Convert to JATS XML` will appear as a dropdown under Draft DOCX file on any Workflow stage.
 
