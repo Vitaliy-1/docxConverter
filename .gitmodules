@@ -1,3 +1,4 @@
 [submodule "docxToJats"]
     path = docxToJats
-    url = https://github.com/Vitaliy-1/docxToJats
+    url = https://github.com/sedici/docxToJats.git
+    branch = stable-v1.0.0
