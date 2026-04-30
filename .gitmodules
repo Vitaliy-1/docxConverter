@@ -1,3 +1,4 @@
 [submodule "docxToJats"]
-	path = docxToJats
-	url = https://github.com/sedici/docxToJats/tree/stable-v1.0.0
+    path = docxToJats
+    url = https://github.com/sedici/docxToJats.git
+    branch = stable-v1.0.0
