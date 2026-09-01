@@ -41,7 +41,7 @@ pkp.registry.storeExtend('fileManager_COPYEDITED_FILES',
 					name: 'convertAction',
 					icon: 'FileText',
 					actionFn: ({file}) => {
-						const {apiUrl} = useUrl(`submissions/docxConverter/${file.id}`);
+						const {apiUrl} = useUrl(`submissions/docxConverter/${fileStore.props.submission.id}/${file.id}`);
 						openDialog({
 							title: t('plugins.generic.docxConverter.button.parseDocx'),
 							message: t('grid.action.parse'),
@@ -53,6 +53,7 @@ pkp.registry.storeExtend('fileManager_COPYEDITED_FILES',
 										close();
 										const {fetch} = useFetch(`${apiUrl.value}/convert`, {
 											method: 'GET',
+											query: {stageId: fileStore.props.submissionStageId},
 											headers: {
 												'Content-Type': 'application/json',
 												'X-Csrf-Token': pkp.currentUser.csrfToken,
@@ -112,7 +113,7 @@ pkp.registry.storeExtend('fileManager_PRODUCTION_READY_FILES',
 					name: 'convertAction',
 					icon: 'FileText',
 					actionFn: ({file}) => {
-						const {apiUrl} = useUrl(`submissions/docxConverter/${file.id}`);
+						const {apiUrl} = useUrl(`submissions/docxConverter/${fileStore.props.submission.id}/${file.id}`);
 						openDialog({
 							title: t('plugins.generic.docxConverter.button.parseDocx'),
 							message: t('grid.action.parse'),
@@ -124,6 +125,7 @@ pkp.registry.storeExtend('fileManager_PRODUCTION_READY_FILES',
 										close();
 										const {fetch} = useFetch(`${apiUrl.value}/convert`, {
 											method: 'GET',
+											query: {stageId: fileStore.props.submissionStageId},
 											headers: {
 												'Content-Type': 'application/json',
 												'X-Csrf-Token': pkp.currentUser.csrfToken,

@@ -27,13 +27,16 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use PKP\core\PKPBaseController;
+use PKP\core\PKPRequest;
 use PKP\db\DAORegistry;
 use PKP\file\PrivateFileManager;
 use PKP\handler\APIHandler;
 use PKP\plugins\Hook;
+use PKP\plugins\interfaces\HasAuthorizationPolicy;
+use PKP\security\authorization\SubmissionFileAccessPolicy;
 use PKP\submissionFile\SubmissionFile;
 
-class DocxConverterHandler
+class DocxConverterHandler implements HasAuthorizationPolicy
 {
     public DocxConverterPlugin $plugin;
 
@@ -45,19 +48,38 @@ class DocxConverterHandler
     /**
      * This allows adding a route on the fly without defining an api controller.
      * Hook: APIHandler::endpoints::submissions
-     * e.g. api/v1/submissions/docxConverter/{submission_file_id}/convert
+     * e.g. api/v1/submissions/docxConverter/{submissionId}/{submissionFileId}/convert
      */
     public function addRoute(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool
     {
         $apiHandler->addRoute(
             'GET',
-            DocxConverterPlugin::PLUGIN_NAME . "/{submission_file_id}/convert",
+            DocxConverterPlugin::PLUGIN_NAME . "/{submissionId}/{submissionFileId}/convert",
             fn(IlluminateRequest $request): JsonResponse => $this->convert($request),
             DocxConverterPlugin::PLUGIN_NAME . '.convert',
-            DocxConverterPlugin::AUTHORIZED_ROLES
+            DocxConverterPlugin::AUTHORIZED_ROLES,
+            $this
         );
 
         return Hook::CONTINUE;
+    }
+
+    /**
+     * Ensure the caller may access the specific submission file, not just hold an editorial role.
+     */
+    public function getPolicies(PKPRequest $request, array &$args, array $roleAssignments): array
+    {
+        $submissionFileId = (int) PKPBaseController::getRequestedRoute()->parameter('submissionFileId');
+
+        return [
+            new SubmissionFileAccessPolicy(
+                $request,
+                $args,
+                $roleAssignments,
+                SubmissionFileAccessPolicy::SUBMISSION_FILE_ACCESS_MODIFY,
+                $submissionFileId
+            ),
+        ];
     }
 
     /**
@@ -66,7 +88,7 @@ class DocxConverterHandler
      */
     private function convert(IlluminateRequest $illuminateRequest): JsonResponse
     {
-        $submissionFile = Repo::submissionFile()->get((int)$illuminateRequest->route('submission_file_id'));
+        $submissionFile = Repo::submissionFile()->get((int)$illuminateRequest->route('submissionFileId'));
         if (!$submissionFile) {
             return response()->json(
                 ['error' => __('api.404.resourceNotFound')],
@@ -80,6 +102,12 @@ class DocxConverterHandler
         $filePath = $fileManager->getBasePath() . '/' . $submissionFile->getData('path');
 
         $docxArchive = new DOCXArchive($filePath);
+        if (!$docxArchive->getDocument()) {
+            return response()->json(
+                ['error' => __('plugins.generic.docxConverter.conversionError')],
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
         $jatsXML = new DocxConverterDocument($docxArchive);
 
         $submissionId = $submissionFile->getData('submissionId');
