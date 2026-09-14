@@ -52,6 +52,11 @@ class DocxConverterHandler implements HasAuthorizationPolicy
      */
     public function addRoute(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool
     {
+        // Skip PKPSubmissionFileController: its handler path already contains {submissionId}, which would duplicate the placeholder.
+        if ($apiController->getHandlerPath() !== 'submissions') {
+            return Hook::CONTINUE;
+        }
+
         $apiHandler->addRoute(
             'GET',
             DocxConverterPlugin::PLUGIN_NAME . "/{submissionId}/{submissionFileId}/convert",
