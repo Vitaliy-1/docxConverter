@@ -20,5 +20,8 @@ msgstr "Transforms journal articles from DOCX (OOXML) to JATS XML format."
 msgid "plugins.generic.docxConverter.button.parseDocx"
 msgstr "Convert to JATS XML"
 
+msgid "plugins.generic.docxConverter.conversionError"
+msgstr "Failed to open the DOCX file. The file may be corrupt or not a valid DOCX document."
+
 msgid "grid.action.parse"
 msgstr "Convert this file to JATS XML"
