@@ -60,7 +60,7 @@ class DocxConverterHandler implements HasAuthorizationPolicy
         $apiHandler->addRoute(
             'GET',
             DocxConverterPlugin::PLUGIN_NAME . "/{submissionId}/{submissionFileId}/convert",
-            fn(IlluminateRequest $request): JsonResponse => $this->convert($request),
+            fn(IlluminateRequest $request): JsonResponse => $this->convert(),
             DocxConverterPlugin::PLUGIN_NAME . '.convert',
             DocxConverterPlugin::AUTHORIZED_ROLES,
             $this
@@ -91,13 +91,19 @@ class DocxConverterHandler implements HasAuthorizationPolicy
      * Converts a DOCX file associated with a submission into JATS XML format
      * and adds it as a new submission file, along with any supplementary files.
      */
-    private function convert(IlluminateRequest $illuminateRequest): JsonResponse
+    private function convert(): JsonResponse
     {
-        $submissionFile = Repo::submissionFile()->get((int)$illuminateRequest->route('submissionFileId'));
-        if (!$submissionFile) {
+        $routeController = PKPBaseController::getRouteController();
+        /** @var SubmissionFile $submissionFile */
+        $submissionFile = $routeController->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION_FILE);
+        /** @var Submission $submission */
+        $submission = $routeController->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
+
+        $routeSubmissionId = (int) PKPBaseController::getRequestedRoute()->parameter('submissionId');
+        if ((int) $submissionFile->getData('submissionId') !== $routeSubmissionId) {
             return response()->json(
-                ['error' => __('api.404.resourceNotFound')],
-                Response::HTTP_NOT_FOUND
+                ['error' => __('api.403.unauthorized')],
+                Response::HTTP_FORBIDDEN
             );
         }
 
@@ -115,8 +121,7 @@ class DocxConverterHandler implements HasAuthorizationPolicy
         }
         $jatsXML = new DocxConverterDocument($docxArchive);
 
-        $submissionId = $submissionFile->getData('submissionId');
-        $submission = Repo::submission()->get($submissionId);
+        $submissionId = $submission->getId();
         $jatsXML->setDocumentMeta($submission);
         $tmpName = tempnam(sys_get_temp_dir(), DocxConverterPlugin::PLUGIN_NAME);
         file_put_contents($tmpName, $jatsXML->saveXML());
